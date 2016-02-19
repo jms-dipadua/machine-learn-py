@@ -1,0 +1,471 @@
+list of activities:
+
+first up: data cleaning
+ - convert all false / true to boolean (0/1)
+ - convert all A - Z to 0 to 25
+ - one feature (var_0044) is bunk (apparently) --> []
+ - var__0073 & var_0075 are dates --> not esure what to do w/ them
+		--> var_0073 is inconsistent (maybe throw it out)
+		--> var _0075 is 100% (based on sample)
+ - var_0074 is a mix of numbers and NA
+	--> what to do w/ NA
+	--> NA is typically "not applicable" so...AFTER scaling set all NAs to zero? 
+ - var 156 to 159 should be thrown out (just "")
+
+* maybe as a first cut just ignore ALL DATES...
+
+* customer cities are available (var 200)
+	- create dictionary and then group them?
+	- do a state look up? and "cluster them" based on state?
+	--> state is available in var 0237
+	--> zipcode is var 0241
+
+* var 0215 and 0216 can be ignored (same data all the way through)
+
+* may have some zillow / house appraisal value in here:
+	- var 0293, 0296,0297,0298
+		--> potentially: zillow "buy price" and then estimated values for medain, predicted and high??? 
+	-> var 0294 looks like a year...maybe the year of purchase?
+	--> in this column, the year is sometimes a -1...maybe if its unknown?
+
+* all -1s look like a "i don't know" so in some way synonymous with "na"?? 
+
+* maybe one option would be to simply look at each person
+	-> if ALL the data is present, no corruption, keep it. otherwise, throw it out?
+
+* in TEST file, 0246 is -1 for ALL entries
+	-> same for TRAIN (so don't use it!)
+	--> NEED LARGER SAMPLE TO MAKE THIS DETERMINATION
+* var 0202 is "batchinquiry"
+	--> probably a description of how the file was generated from the client system
+
+* in test and train, 0203 is all 1s (don't use)
+	--> NEED LARGER SAMPLE TO MAKE THIS DETERMINATION
+* var 227 and 228 are duplicates
+	-> forum suspects left-join IDs
+	-> don't use
+
+* in addition to some variables labled as "-1" or "NA" some are also -99999 or 9999999
+	-> how to handle these...
+
+:: VAR_0293, 0294, _0295, _0296, _0297, _0298 
+	--> seem to be duplicated by: VAR_0313, _0314, _0315, _0316, _0317, _0318
+	--> but the 290's seem to be canonical. so the 300s may be can't be trusted (throw 'em out!)
+	FULL SERIES: VAR_0313, VAR_0314, VAR_0315, VAR_0316, VAR_0317, VAR_0318, VAR_0319, VAR_0320, VAR_0321
+
+:: var 304 is a duplicate of 0282
+:: VAR_0283 is duplicated by 305 (again, 283 appears to be canonical)
+
+DON'T USE COLUMNS:
+VAR_0008, VAR_0009, VAR_0010, VAR_0011, VAR_0012, VAR_0019, VAR_0020, VAR_0021, VAR_0022, VAR_0023, VAR_0024, VAR_0025, VAR_0026, VAR_0027, VAR_0028, VAR_0029, VAR_0030, VAR_0031, VAR_0032, VAR_0038, VAR_0039, VAR_0040, VAR_0041, VAR_0042, VAR_0043, VAR_0044, VAR_0045, VAR_0073, VAR_0074, VAR_0075, VAR_0098, VAR_0099, VAR_0100, VAR_0114, VAR_0115, VAR_0116, VAR_0130, VAR_0131, VAR_0132, VAR_0138, VAR_0139, VAR_0140, VAR_0156, VAR_0157, VAR_0158, VAR_0159, VAR_0166, VAR_0167, VAR_0168, VAR_0169, VAR_0176, VAR_0177, VAR_0178, VAR_0179, VAR_0197, VAR_0200, VAR_0202, VAR_0204, VAR_0205, VAR_0206, VAR_0207, VAR_0213, VAR_0214, VAR_0215, VAR_0216, VAR_0217, VAR_0226, VAR_0227, VAR_0228, VAR_0229, VAR_0230, VAR_0237, VAR_0239, VAR_0246, VAR_0270, VAR_0274, VAR_0275, VAR_0276, VAR_0277, VAR_0278, VAR_0313, VAR_0314, VAR_0315, VAR_0316, VAR_0317, VAR_0318, VAR_0319, VAR_0320, VAR_0321, VAR_0367, VAR_0394, VAR_0395, VAR_0396, VAR_0397, VAR_0398, VAR_0399, VAR_0404, VAR_0411, VAR_0412, VAR_0413, VAR_0414, VAR_0415, VAR_0467, VAR_0493, VAR_0531, VAR_0546, VAR_0547, VAR_0548, VAR_0549, VAR_0551, VAR_0570, VAR_0574, VAR_0575, VAR_0576, VAR_0577, VAR_0598, VAR_0599, VAR_0600, VAR_0601, VAR_0602, VAR_0603, VAR_0632, VAR_0633, VAR_0634, VAR_0635, VAR_0636, VAR_0637, VAR_0638, VAR_0639, VAR_0640, VAR_0641, VAR_0642, VAR_0643, VAR_0644, VAR_0645, VAR_0653, VAR_0654, VAR_0659, VAR_0660, VAR_0669, VAR_0670, VAR_0671, VAR_0672, VAR_0673, VAR_0674, VAR_0675, VAR_0676, VAR_0677, VAR_0678, VAR_0679, VAR_0680, VAR_0681, VAR_0682, VAR_0684, VAR_0691, VAR_0692, VAR_0693, VAR_0694, VAR_0695, VAR_0696, VAR_0697, VAR_0698, VAR_0699, VAR_0700, VAR_0701, VAR_0702, VAR_0703, VAR_0710, VAR_0714, VAR_0732, VAR_0734, VAR_0735, VAR_0745, VAR_0755, VAR_0757, VAR_0763, VAR_0773, VAR_0779, VAR_0784, VAR_0789, VAR_0798, VAR_0799, VAR_0803, VAR_0804, VAR_0808, VAR_0809, VAR_0811, VAR_0840, VAR_0851, VAR_0855, VAR_0856, VAR_0857, VAR_0858, VAR_0862, VAR_0865, VAR_0873, VAR_0882, VAR_0883, VAR_0889, VAR_0890, VAR_0891, VAR_0901, VAR_0902, VAR_0903, VAR_0904, VAR_0905, VAR_0906, VAR_0907, VAR_0908, VAR_0909, VAR_0910, VAR_0911, VAR_0912, VAR_0913
+
+
+
+[EFFECTIVELY] ALL 0s:
+VAR_0019, VAR_0020, VAR_0021, VAR_0022, VAR_0023, VAR_0024, VAR_0025, VAR_0026, VAR_0027, VAR_0028, VAR_0029, VAR_0030, VAR_0031, VAR_0032, VAR_0038, VAR_0039, VAR_0040, VAR_0041, VAR_0042, VAR_0045, VAR_0098, VAR_0099, VAR_0100, VAR_0114, VAR_0115, VAR_0116, VAR_0130, VAR_0131, VAR_0132, VAR_0138, VAR_0139, VAR_0140, VAR_0275, VAR_0276, VAR_0277, VAR_0278, VAR_0394, VAR_0395, VAR_0396, VAR_0397, VAR_0398, VAR_0399, VAR_0411, VAR_0412, VAR_0413, VAR_0414, VAR_0415
+
+
+:: REALIZING that removing these could just be mimicing a PCA... hmm
+
+[EFFECTIVELY] ALL NAs: (pandas seems to not support)
+VAR_0205, VAR_0206, VAR_0207, VAR_0213, VAR_0214, VAR_0270
+
+[EFFECTIVELY] ALL THE SAME VALUE: (string values, all false, etc)
+VAR_0215, VAR_0216, VAR_0226, VAR_0229, VAR_0230, VAR_0239, VAR_0246
+
+
+
+
+
+
+
+
+SUSPICIOUS COLUMNS (CONSIDER DROPPING): 
+VAR_0201, VAR_0203, VAR_0212, VAR_0213, VAR_0214, VAR_0215, VAR_0216, VAR_0222, VAR_0223, VAR_0405 (is this a mistake i made? or a corrupted row/column??)
+
+PROBLEMATIC (ADDRESS RELATED)
+VAR_0200 (city) [[ REMOVED...zipcode covers city // state)
+VAR_0237 (state) [[ removed.. see zipocode
+VAR_0241 (zipcode)
+VAR_0274 (state)  [[ REMOVED ONE...ONLY NEED STATE ONCE ]] 
+
+MONEY LOOKING COLUMNS:
+VAR_0289 (amount due on mortgage?)
+--> the following three look like they may be home valuations at different time points
+	--> maybe somehow related to the financial crisis?
+VAR_0296 
+VAR_0297
+VAR_0298
+
+NEEDS DICIONTARY (NON-ADDRESS):
+VAR_0283, VAR_0283, VAR_0305, VAR_0325, VAR_0342 VAR_0352	VAR_0353	VAR_0354
+VAR_0404 (registration method??)
+VAR_0493
+
+SOME SORT OF TWEAKED DATE:
+VAR_0531 --> 201203 :: 2012.03   201209 ---> 2012.09    201201 --> 2012.01
+
+
+APPLICANT OCCUPATION:
+VAR_0493
+
+
+
+
+
+THESE MIGHT BE SOME SORT OF SLIDING SCALE:
+VAR_0546	VAR_0547	VAR_0548	VAR_0549	VAR_0550	VAR_0551
+	- such that the 998 vs 9996 is meant to act as a 1 to 5 rating?? maybe make diciontaries out of these columns?
+	- they have small values like "30" mixed in with them though...what is 998??
+	- HUNDREDS of columns like this. not sure what they mean...
+	- FOR THE FIRST RUN, i'm going to REMOVE them -- or at least all the ones where they look to just be one value
+		-- future runs should evaluate including them and simply scaling them
+	:: COL RANGE: 0546+/- through 0913+/-
+	
+
+
+POA:
+
+1. going to create a new training file with the "remove columns" removed. √
+	- it will be the full training file  --> see data/train_scrub3 & ../test_scrub3.csv
+2. then going to create a sample file from the new training file
+3. with new sample file, going to re-examine to see if there are MORE columns i want to rip out
+	- if so, then repeat steps 1 - 3 until i feel satisfied with the "scrubbed filed"\
+4. then begin to write a data prep file
+	- will convert all strings into enumerated dictionaries
+	- in addition to conversion, will WRITE the dictionary to .txt/.csv so that i can access it later for review
+5. once satisfied with the prep'd data, i will look into using:
+	--> run through PCA to get components down
+	- NN
+	- logistic regression
+	- random forest
+	---> it STILL seems somewhat possible for me to make this into a recommendation platform
+	--> data looks weird but may be possible
+
+
+6. Run a "removed features" (set in range(0, data.len() - remove_cols) 
+	- then you can do an analysis on some of these
+	- like, use the list removal technique you learned in the CNN (for gal) to get features back in easily...
+		:: "just in case" ...if they are really bad, PCA SHOULD remove them...
+
+
+SLIGHT CHANGE IN POA:
+* for v.1 "test something and get on LB", i'm just going to keep all the data in there and not worry about duplicates
+* i'm thinking that maybe it's okay if there are wildly strange values, SO LONG as i scale appropriately. worth a try
+	* WILL need to do something about the NAs. 
+	* probably best to just remove them from the data set...or fill in with zeros?
+
+
+
+
+
+---- RECOMMENDATION SYSTEM PLAN ----
+some values are not filled in
+for those, for that user, we would simply ignore it --> EXACTLY how collaborative filtering is suppose to work
+we can then "backfill" the missing values using the recommendation engine
+from THERE it may make sense to run a NN or something because i would then have a full data set
+i.e. i COULD just use the collaborative filter to establish "best guesses" for what the missing values should be 
+... 
+ALTERNATIVELY, we just use the collaborative filter to predict "get a mailer, don't get a mailer"
+
+
+
+
+
+
+  ******   V1   ******
+- after much wranging, keeping it simple and just removing all non-int values
+- see file: train_transform1.csv & test_transform1.csv
+	- NO SAMPLING (which may be a mnistake)
+	- for testing: train/test_transform1_s1.csv == 10 non-random lines
+- v1 of learn_train.csv is 
+	: 3 ensembles:  A) LDA, B) LOGIT, C) RANDOM FOREST
+	- equal weight
+... actually going to do that AFTER getting just a LOGIT to run (they're commented out)
+
+- skipping LR run on the transform1
+	--> MAKING TRANSFORM2
+
+  ******   V2   ******  
+- dropping a few specifcally targeted columns
+	: some identified as duplicates (by me), others as ID fields (by others)
+	data = data.drop(['VAR_0227', 'VAR_0228','VAR_0313', 'VAR_0314', 'VAR_0315', 'VAR_0316', 'VAR_0317', 'VAR_0318', 'VAR_0319', 'VAR_0320', 'VAR_0321'])
+	: FILES: train_trans2.csv & test... + train_trans2_s1.csv, etc
+
+ - v2-1:
+	 - USES logit. score was .54xx (so only sightly better than all 0s)
+	 - evaluating file, it output a series of 0s and 1s :: EXPECTED probablities
+	 - re-ran (v2-2) with LDA() :: warning that "Variables are collinear" (not good), also output 1s and 0s
+ - v2-3: 
+	 - uses random forest. seems to output (in test: v2-3-test1.csv) probablities
+	 - going to run full data set:  v2-3.csv
+		:: score: 0.34485
+	-- as a result of this, searched for parameter setting and see that sqrt of # features is good: going with 40
+
+- depending on results, next step will be to iterate through each row and remove mostly empty / crapy rows
+	-- see example of method here: https://www.kaggle.com/raddar/springleaf-marketing-response/removing-irrelevant-vars/code
+	:: explicitly counting instances of NA. pandas SEEMS to remove so can do a count of NA or '' 
+	-- knowing the shape we can say that if the row is 30% or more empty / crapy, it gets dropped (threshold to be a test area)
+	-- just like with ROWS (above) we can apply the same method to COLUMNs: if no unique values (i.e. all "false", then drop)
+	-- but FOR COLUMNS, we'd do a check of uniqueness
+		--> MAY even make sense that if only one row is unique, then to drop the column because a "1" on one line and "0" on ALL the others won't be enough of a signal in a test situation (presumably)
+- i want to TRAIN on clean data 
+	-> for the TEST file, i would then simply input zeros for all missing data. (??)
+	* NOTE: for ZIPCODES, i think we might either be dropping them incorrectly or converting them incorrectly
+	- also, with zipcodes, it's not clear to me if scaling them makes sense. BUT, on a scale, two close proximity addresses will be closely scaled, so it may be fine... (by luck)
+
+
+
+DtypeWarning: Columns (8,9,10,11,12,43,157,196,214,225,228,229,231,235,238) have mixed types. Specify dtype option on import or set low_memory=False.
+  data = self._reader.read(nrows)
+
+
+VAR_0007,VAR_0008,VAR_0009,VAR_0010,VAR_0011,VAR_0043,VAR_0156,VAR_0195,VAR_0213,VAR_0224,VAR_0227,VAR_0228,VAR_0230,VAR_0234,VAR_0237
+	
+
+ **** v3 *****
+- file: train_trans3-2.csv
+	--> FINALLY converts booleans correctly to floats
+	--> issue was the inclusion of malformatted data (no surprise)
+	--> uses "data[ent].convert_objects(convert_numeric=True)"
+- did not make a test file
+- did not run any tests against it.
+- moving directly onto v4 of file transformation (ditching non-unique columns and dropping shitty rows from training set)
+
+ *** v4 *****
+- FILE: train_trans4-1.csv (and test_trains4-1.csv)
+	--> INCLUDES all booleans, even if the entire column is comprised of that
+	--> ALSO converts all NaNs to 0s
+	--> trans4-2.csv will DROP the columns with uniqueness thresholds below .999 (meaning, they're essentially all the same value)
+
+- FIXED the probability prediction with the logisticRegression 
+	--> forgot to scale the test group!  --> v4-1.csv was a LR w/ the train_trans4-1.csv file but the issue mentioned
+	--> submission score for v2-2: 0.76459
+
+: v4-3.csv
+	: uses randomForest classifier w/ 40 estimators
+	: also uses train sample split (and will provide a validations score based on 25% of dataset)
+	--> WAS NOT able to get validation set working
+	--> submitted and score was ABYSMAL: .28xxx
+
+: v4-4.csv:
+	- just focusing on getting the valiation working
+	- will also experiment with adjusting the number of estimators for RF to see if adjusting that helps improve the score... 
+	:: EUH!!!! THERE WAS SOME **ONE** ROW MISALIGNMENT KILLING THIS WHOLE ENDEVOR
+	:: jsut for a quick shits and giggles, trying the LDA  --> .76439
+	:: other options include svm and NN...
+: v4-5.csv
+	:: svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
+		gamma=0.0, kernel='rbf', max_iter=-1, probability=False, random_state=None,
+		shrinking=True, tol=0.001, verbose=False)
+		:: COULD NOT GET THIS TO FINISH IN 9+/- HOURS SO ABORTED
+	- RETRY: 
+	- USED PIPELINE OF SVD (like PCA) that fed into Logistic Regression
+	- Will need to test PCA 
+
+ *** V5 ***
+- going to see about reexaminig unique
+- can keep it simple: 
+
+	:: if unique_count[0] == 1, then drop the column
+: FILE: created train_samp1000 to test --> it's a straight sample, not randomized
+	--> FILE FAILS
+	:: ISSUE WITH SHAPE. TWO EXTRA COLUMNS WERE DROPPED FROM THE TEST
+	- _trans5-2.csv will print otu the dropped columns from each run so i can compare
+	- it may just be easier to NOT drop any column (because they could be different!)
+	-- drop tables are below
+	-- put in a pass on the two errant skips (but it's weird that those two columns differ...
+
+DROPPED COLS FROM TRAIN:
+['VAR_0008', 'VAR_0009', 'VAR_0010', 'VAR_0011', 'VAR_0018', 'VAR_0019', 'VAR_0020', 'VAR_0021', 'VAR_0022', 'VAR_0023', 'VAR_0024', 'VAR_0025', 'VAR_0026', 'VAR_0027', 'VAR_0028', 'VAR_0029', 'VAR_0030', 'VAR_0031', 'VAR_0032', 'VAR_0038', 'VAR_0039', 'VAR_0040', 'VAR_0041', 'VAR_0042', 'VAR_0043', 'VAR_0188', 'VAR_0189', 'VAR_0190', 'VAR_0199', 'VAR_0207', 'VAR_0213', 'VAR_0221', 'VAR_0394', 'VAR_0438', 'VAR_0446', 'VAR_0527', 'VAR_0528', 'VAR_0840', 'VAR_0847', 'VAR_1428
+
+DROPPED COLS FROM TEST
+['VAR_0008', 'VAR_0009', 'VAR_0010', 'VAR_0011', 'VAR_0018', 'VAR_0019', 'VAR_0020', 'VAR_0021', 'VAR_0022', 'VAR_0023', 'VAR_0024', 'VAR_0025', 'VAR_0026', 'VAR_0027', 'VAR_0028', 'VAR_0029', 'VAR_0030', 'VAR_0031', 'VAR_0032', 'VAR_0038', 'VAR_0039', 'VAR_0040', 'VAR_0041', 'VAR_0042', 'VAR_0043', 'VAR_0188', 'VAR_0189', 'VAR_0190', 'VAR_0199', 'VAR_0207', 'VAR_0213', 'VAR_0221', 'VAR_0394', 'VAR_0438', 'VAR_0446', 'VAR_0526', 'VAR_0527', 'VAR_0528', 'VAR_0529', 'VAR_0840', 'VAR_0847', 'VAR_1428'
+
+ *** v6  ***
+- more work on dictionary
+- an explicit pass for the unique columns (based on v5 insights)
+- new pre-int/float drop list (includes dates)
+	['VAR_0073','VAR_0156','VAR_0156', 'VAR_0227', 'VAR_0228','VAR_0313', 'VAR_0314', 'VAR_0315', 'VAR_0316', 'VAR_0317', 'VAR_0318', 'VAR_0319', 'VAR_0320', 'VAR_0321']
+
+ *** V5-B ***
+- still seeing some logic problems with dict, so backing off that yet again
+- this version just uses the custom unque drop list since that was an issue before
+- will the re-run using a pipe that uses SVD and a version with PCA to see if there are any improvements to score 
+
+- v5-b-1.csv
+	- uses pipeline to SVD to logit
+	:: SCORE WAS REALLY BAD @ .39XX
+- v5-b-2.csv
+	- incorporates gridsearch (which is used, IIUC, to select the number of compontents)
+	- PIPE is now PCA -> logit 
+	n_components = [100, 300, 600]
+	: LB @ 0.75161
+- v5-b-3.csv
+	- removal of PCA
+	- integration of cross-validation (or at least another attempt...)
+	score for non-sampled data set:  0.78814586317065105
+	LB SCORE: 0.76312
+
+ - v5-b-nn1.csv
+	: introduction of keras NN. normal dense-only nn --> SEEMED TO ONLY OUTPUT A SINGLE CLASS ("1")
+		# NEURAL NETWORK        
+    model = Sequential()
+    model.add(Dense(input_dim=X_vals.shape[1], output_dim=200, init="glorot_uniform"))
+    model.add(Activation("relu"))
+    model.add(Dense(input_dim=200, output_dim=10, init="glorot_uniform"))
+    model.add(Activation("sigmoid"))
+    model.add(Dense(input_dim=10, output_dim=y_vals.shape[1], init="glorot_uniform"))
+    model.add(Activation("softmax"))
+
+    sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='mean_squared_error', optimizer='sgd')
+    # first model
+    print "fitting first model"
+    model.fit(X_vals, y_vals, nb_epoch=30, validation_split=0.25, batch_size=16)
+
+    nn_preds = model.predict_proba(X_test)
+ - v5-b-nn2.csv
+	: change of output activiation to sigmoid
+	: also 	model.compile(loss='binary_crossentropy', optimizer='sgd')
+	-> WHEN i tried to change the output dim to 2, this failed but wondering if was the binary_crossentropy
+	--> will try that too... sigh
+	:: output was essentially the EXACT OPPOSITE of previous logit/etc predictions
+ - v5-b-nn3.csv
+	: tried to swap the binary_crossentropy out and put output dimeions back to 2 but it failed again
+	- currently sigmoid is output layer, mean_square_error and a single output dimension
+	:: really don't know how to interpret the results...
+	:: some overlap with other files but not much...AUC makes it tough
+	:: going to try another tweaked NN to see what results are like
+	:: also dropping paitence to 3 because it's unclear how the system uses the early stopping
+ - v5-b-nn4.csv
+	:: patience == 3
+	:: input --> 400 --> 100 --> 1
+ - v5-b-nn5.csv
+	:: EXACTLY the same as nn4 BUT pulled out .25 for a CV set
+	:: since I only have one submission left for today, i want to see how it compares with some CV data...
+	:: LOSS:: .1511 --> does that imply .85 accuracy?
+
+ - v5-b-nn6.csv
+	- EXACTLY the same as v5-b-nn3.csv BUT 	
+	- ENABLED CV set (as with ..nn5) AND (now) show_accuracy = True
+	- want ot see what hte difference is...since id on't understand
+	[0.15323233335697362, 1.0]
+
+ - v5-b-nn7.csv
+	- change to --> input --> 500 --> 10 --> 1
+	- sigmoid BUT "predict" (rather than "predict_proba")
+	--> SIGMOID gives a probablity prediction so it still looks like .xx
+	[0.15132820888010373, 1.0]
+	:: LB @ 0.75803
+
+ - v5-b-nn8.csv
+	- change to "tanh" activiation and softmax for output
+	--> will reintroduce predict_proba just in case... 
+	- input -> 500 -> 10 --> 1
+	:: simply out put 1s again
+ - v5-b-nn9.csv
+	- same as nn8 BUT change back to sigmoid output and back to predict()
+	[0.15407480792819286, 1.0]
+
+
+
+	*** V6 ***
+******** REVISITING TRANSFORMATIONS *********
+ --> dict from letters to numbers 
+	'VAR_0001, 'VAR_0005', 'VAR_0200', 'VAR_0237', 'VAR_0283', 'VAR_0305', 'VAR_0325', 'VAR_0342', 'VAR_0352', 'VAR_0353', 'VAR_0354', 'VAR_0404', 'VAR_0466', 'VAR_0467', 'VAR_0493'
+
+
+DATES: --> full list below. for v6, going to DROP THE DATES because of insecurity over how to manage / convert / transform / etc
+? --> To force conversion to datetime64[ns], pass convert_dates='coerce
+'VAR_0073', 'VAR_0075', 'VAR_0156', 'VAR_0157', 'VAR_0158', 'VAR_O159', 'VAR_0166', 'VAR_0167', 'VAR_0168', 'VAR_0169', 'VAR_0177', 'VAR_0178', 'VAR_0179', 'VAR_0217', 
+
+DROP: 'VAR_0044', VAR_0201, 'VAR_0214'
+OLD DROP LIST: data.drop(['VAR_0073','VAR_0156','VAR_0159', 'VAR_0227', 'VAR_0228','VAR_0313', 'VAR_0314', 'VAR_0315', 'VAR_0316', 'VAR_0317', 'VAR_0318', 'VAR_0319', 'VAR_0320', 'VAR_0321'], axis = 1)
+
+V6 drop list (before unique loops and dictionary writings):
+drop_cols = ['VAR_0044', 'VAR_0201', 'VAR_0214', 'VAR_0073', 'VAR_0075', 'VAR_0156', 'VAR_0157', 'VAR_0158', 'VAR_O159', 'VAR_0166', 'VAR_0167', 'VAR_0168', 'VAR_0169', 'VAR_0177', 'VAR_0178', 'VAR_0179', 'VAR_0217']
+
+	:: NOTE:: CAN KEEP the DATES by converting them into a dictoinary. the nans and na's etc are ALL treated as 0s for now. will see how model performs and re-evaluate that decision later. maybe just standardize around the existing encoding pattern of -values --> could even do the neg max of the dict to get a nan or na value... 
+
+** test file: train_samp5.csv
+
+FILE: train_t6-1.csv
+	- LOOKS like dates were still in there (or at least some of them?) --> they were transformed into dicts
+	- col _0197 was just '201' and nan --> chose to drop; same (decision) with 215 and 216, 222, 223, 246
+	- state is still in there...
+	- there were some 'nan' that were not being converted to 0. was able to track down and figure out. prepared to rerun
+	DROP LIST:
+'VAR_0008', 'VAR_0009', 'VAR_0010', 'VAR_0011', 'VAR_0012', 'VAR_0018', 'VAR_0019', 'VAR_0020', 'VAR_0021', 'VAR_0022', 'VAR_0023', 'VAR_0024', 'VAR_0025', 'VAR_0026', 'VAR_0027', 'VAR_0028', 'VAR_0029', 'VAR_0030', 'VAR_0031', 'VAR_0032', 'VAR_0038', 'VAR_0039', 'VAR_0040', 'VAR_0041', 'VAR_0042', 'VAR_0043', 'VAR_0044', 'VAR_0188', 'VAR_0189', 'VAR_0190', 'VAR_0196', 'VAR_0197', 'VAR_0199', 'VAR_0202', 'VAR_0203', 'VAR_0207', 'VAR_0207', 'VAR_0213', 'VAR_0213', 'VAR_0215', 'VAR_0216', 'VAR_0221', 'VAR_0222', 'VAR_0223', 'VAR_0229', 'VAR_0239', 'VAR_0246', 'VAR_0438', 'VAR_0446', 'VAR_0527', 'VAR_0528', 'VAR_0530', 'VAR_0840', 'VAR_0847', 'VAR_0847', 'VAR_1428', 'VAR_1428'
+
+
+FILE: train_t6-2.csv
+	- dropping 202, 216, 222, 223 --> batchinquiry and DS, C6, 2741
+	:: VAR_1934 should be a 3, not a 4
+		--> fixed that AND dropped the last 4 since that's for target
+	all_decisions = [1, 3, 4, 4, 4, 3, 4, 4, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 3, 2, 4, 3, 4, 4, 2, 4, 4, 4, 4, 4, 2, 4, 2, 3, 4, 4, 4, 2, 2, 4, 4, 3, 4, 4, 3, 3, 4, 3, 4, 4, 4, 3, 3, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3]
+
+- v6-1.csv
+	- pure logit run w/ CV set, no PCA or gridsearch
+	- SCORE: .76xx (slightly lower than best score)
+
+:: TRANSFORM:  train_t6-3.csv
+	- same drop/transform/etc pattern as before but replacing nan's with -1
+	- ALSO changed the rules for the dict write so that nans (-1) will REMAIN -1...wondering if that was causing problems in the transform steps
+	- THEN changed it so that the replacement for convert_numeric occurs 
+	- AFTER the nan replacement so that nans in [0,nan] will become [0,-1] rather than [0,0]
+
+- v6-2.csv
+	- going to try with PCA into LR
+	- PCA: parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]} ++ n_components = [100, 300, 600, 900]
+	- will print out number of components
+	- uses train_ / test_t6-3.csv
+
+- v6-3.csv
+	- no PCA, lda version (that was previous high score)
+
+
+
+
+****  V7  *****
+change of drop cols to just _0044 and _0214
+adjustments to dates 
+	-> format: ddMONhh:mm:ss:ms
+	-> New Format: ddMon
+
+dates: VAR_0073, VAR_0075, VAR_0166, VAR_0167, VAR_0168, VAR_0169, VAR_0176, VAR_0177, VAR_0178, VAR_0179, VAR_0204, VAR_0217 
+
+all dropped cols: 
+['VAR_0202', 'VAR_0207', 'VAR_0213', 'VAR_0216', 'VAR_0222', 'VAR_0223', 'VAR_0840', 'VAR_0847', 'VAR_1428']
+
+[1, 3, 4, 4, 4, 3, 4, 4, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 3, 4, 2, 4, 3, 4, 4, 2, 4, 4, 4, 4, 4, 2, 4, 2, 3, 4, 4, 4, 2, 2, 4, 4, 3, 4, 4, 3, 3, 4, 3, 4, 4, 4, 3, 3, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 1, 3, 4, 4, 4, 3, 4, 4, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 3, 4, 2, 4, 3, 4, 4, 2, 4, 4, 4, 4, 4, 2, 4, 2, 3, 4, 4, 4, 2, 2, 4, 4, 3, 4, 4, 3, 3, 4, 3, 4, 4, 4, 3, 3, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4]
+
+v7-1.csv
+ - NN: input -> 1200 -> 50 -> 1; patience = 5 
+ 	- early stopped at epoch 9 ("10") BUT i had a small bug so have to re-run
+	- HOWEVER, i think i have to tweak the learning rate (lr), so i'm upping it from .1 to .3 
+		:: pretweak (before bug) ended at [0.15316973673941864, 1.0]
+	- may have to come back to this. should look over notes on the implications because i saw it in some research i did but i'm busy
+		:: [0.15177511378773145, 1.0]  (again @ epoch 9)
+		:: LB :: 0.74972
+v7-2.csv
+ - same as v7-1 but with droppout layers  :: 0.75485  :: 0.15107604207999598
+ - will try convolutional next
+
+
+:: ANOTHER option is to just use the first 500 or so columns -- before all the redundant [survey?] stuff comes into play
+	-- not convinced that stuff is even "real"
+	
+
+
+
+:: example of how to get variance info from PCA (rather than guessing...): 
+http://stackoverflow.com/questions/27699545/scikit-learn-pca
+would be something like 
+	eigns = pca.explained_variance_ratio_
+	features = 0
+	use_features = []
+	for eign in eigns:
+		if features < .95: % 95% variance
+			features += eigin
+			use_features.append(egins.index(eigin))

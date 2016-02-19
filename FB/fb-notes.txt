@@ -1,0 +1,614 @@
+"train-bidding.csv"
+bidderid 	payment account 	outcome
+
+-_> ref_ids and bot(1), not-bot (0)
+
+
+"bids.csv"
+bid_id 	bidder_id	auction		merch_cat	device		time		country		ip	url	
+
+
+* avg # of bids per day (?) (per auction?)
+* total bids
+* total auctions (participated in)
+* avg time between bids (by auction?)
+* avg num devices per auction (?)
+* num_dual_bid - number of simultaenous bids (bids at same time)
+* country
+* num IPs used
+* num merch_cat(s)
+* avg time per bid (by merch_cat)
+* num bids per URL (wtf is URL?)
+
+
+neural network: binary classification
+* need to write forward propagation
+* write back-propagation
+
+
+
+* get a random sample of data to use as 'quick testing' (of getting feature values above)
+  	-> have sample but not randomized. prob okay for purposes
+
+
+** write matrix of values and save as csv (√)   numpy.savetxt("array-test.csv", a, delimiter=",")
+import numpy
+a = numpy.asarray([ [1,2,3], [4,5,6], [7,8,9] ])
+numpy.savetxt("array-test.csv", a, delimiter=",")
+
+
+** maybe to prevent mal-shaped matrices from being created, create a matrix_temp of zeros (of expected final dimensions) and "add it" to the one created (?) 
+
+
+
+* how many bots detected in total --> and as % of total training data 
+	:: APROX. 5% of bidders in training set are BOTs 
+
+
+* basic stats: 
+	- distribution of "total bids per bidder"
+	- ' of bids across merch cats
+ 	- etc etc 
+
+
+
+* "url" is "ref_url" ? 
+	--> do you need some way of tracking ref_url (as ref point for humans vs a bot, for example...) ... does it matter?
+	--> what if humans are acting as bots? (does that matter for this competition? unclear from forum)
+
+
+
+bid_id 	bidder_id	auction		merch_cat	device		time		country		ip	url	
+
+for id in bidder_ids (loop through each bidder_id)
+for row in bid_data:   (loop through all bids, one at a time)
+	if id = bidder_id (i.e. same person)
+		auction ---> look up to see if bidder_id already in this auction
+			if not, add @ count 1, else ++
+			if not, set 'last_bid_this_auction'; else 
+			calc and set time_bid_lapse_this_auction
+			if not, add total_auctions @ 1; else ++ to total_auctoins
+			ips_this_auction
+		get 'last_bid_this_auction'
+		get 'last_bid_overall'
+
+		calc and set time_bid_lapse_all_auction		
+		append to array of 'bid-lapse-time_auctions'
+		append to array of 'bid-lapse-time_all_bids'
+		add +1 to total bids
+		ip check (this auction, overall)
+		country check (this auction, overall)
+		device check (this auction, overall)
+
+		
+another option:
+sort bids by auction
+	for each auction, (create a new sublist and) sort bids by bidder (or time???)
+
+so, for each (unique) auction:
+	sort by and get each (participating) bidder 
+		then (for each bidder),sort again by time
+			calc avg lapse time  --> should this be as a set of arrays (Previous + Current, pairs?), then calculated at the end?
+			shortest lapse time  --> ditto
+			num bids
+			num devices used <--> device check (this auction, overall)
+			num IPs used  <--> ip check (this auction, overall)
+			check merch_cat(s)  (v.later; merchant cats looks like the data is probably corrupted)
+			country check (this auction + all_countries_list(?))
+			num simultaneous (if possible. maybe hold off for now)
+Then, 
+	calculate totals and averages (?)
+	* total bids
+	* total auctions (participated in)
+	* avg time between bids (by auction?)
+	* avg num devices per auction (?)
+	* num_dual_bid - number of simultaenous bids (v.later)
+	* avg num country per auction
+	* avg IPs used per auction
+	* total IPs used
+	* num merch_cat(s)  (v.later, see above)
+	* avg time per bid (by merch_cat)
+	* num bids per URL (wtf is URL?...ref-url? ...v.later)
+
+
+--> this comes out to 12 features per bidder
+(w/out counting "id"):  12 x m matrix of bidder behavior
+
+* time appears to be consistently unix time but w/ 265 years added (assume data is from april 2014, to arrive @ april 2279)
+
+
+
+with open('myfile.txt') as fin:
+    lines = [line.split() for line in fin]
+
+
+from operator import itemgetter
+lines.sort(key=itemgetter(2))
+
+with open('output.txt', 'w') as fout:
+    for el in lines:
+        fout.write('{0}\n'.format(' '.join(el)))
+
+
+
+
+[28, 181, 1, 18, 130, 32, 7, 1]
+
+
+
+------------
+last_bidder_count: 
+	go through each auction
+	sort the auction by bid time
+	find the last bidder
+	up their count of being the last bidder
+v1: (with sim bid)
+'total_countries', 'total_bids', 'avg_num_countries', 'simultaneous_bids', 'total_auctions', 'num_last_bids', 'total_devices', 'total_ips', 'avg_num_dev', 'avg_num_ips'
+v2:
+'total_countries', 'total_bids', 'avg_num_countries', 'total_auctions', 'num_last_bids', 'total_devices', 'total_ips', 'avg_num_dev', 'avg_num_ips'
+v3:
+'simultaneous_bids', 'total_auctions', 'num_last_bids', 'avg_num_dev', 'avg_num_countries', 'total_devices', 'avg_num_ips', 'total_countries', 'total_bids', 'total_ips', 'num_snipe_bids'
+written to conslolidated as:
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, simultaneous_bids, last_bids, num_snipe_bids
+v4:
+adding total urls (don't know what those are) and expanding net for snipe attempts (just to see -- will run NN w/out snipes but w/ total urls to see impact)
+total_devices', 'total_auctions', 'num_last_bids', 'total_urls', 'avg_num_dev', 'avg_num_countries', 'avg_num_ips', 'total_countries', 'total_bids', 'total_ips', 'num_snipe_bids'
+written as:
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, last_bids, num_snipe_bids, total_urls, simultaneous_bids
+v5:
+adding an increased net for "count" (as in max 1 per auction, rather than boolean)
+'simultaneous_bids', 'total_auctions', 'num_last_bids', 'total_urls', 'avg_num_dev', 'avg_num_countries', 'total_devices', 'avg_num_ips', 'total_countries', 'total_bids', 'total_ips', 'num_snipe_bids'
+
+consolidated_file: 
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, simultaneous_bids, last_bids, num_snipe_bids, total_urls 
+15b: ==> [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
+15c: ==> [1, 2, 3, 4, 5, 6, 7, 8, 10, 12]
+15d: ==> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+current champ: File::  data/consolidated_test3b_urls.csv  ::
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, simultaneous_bids [[as BOOLEAN]], last_bids, num_snipe_bids, total_urls
+
+v6: expand "counts" to not just be the length of countries/etc per auction but the number of incidents within them
+	-- sim bid will be added in as a boolean from the consolidated_3 files
+summary file output order:
+'total_devices', 'total_auctions', 'num_last_bids', 'total_urls', 'avg_num_dev', 'avg_num_countries', 'avg_num_ips', 'total_countries', 'total_bids', 'total_ips', 'num_snipe_bids'
+consolidated file:
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, last_bids, num_snipe_bids, total_urls, simultaneous_bids (boolean)
+
+v7:
+trimmed down (for performance):
+'simultaneous_bids', 'total_auctions', 'total_devices', 'total_urls', 'avg_num_dev', 'simultaneous_country', 'avg_num_countries', 'total_countries, 'total_bids', 'total_ips', 'avg_num_ips'
+
+WRITTEN AS:
+total_bids (1), total_auctions (2), total_devices(3), total_ips(4), total_countries(5), avg_num_dev(6), avg_num_countries(7), avg_num_ips(8), last_bids(9), num_snipe_bids(10), total_urls(11), simultaneous_bids(12), simultaneous_country(13) 
+	++>> just taking the recods of simultaneous_country and inserting it into the previous "winning" csv: consolidated_training3b_urls.csv
+:: file:: consolidated_test7a_merged1.csv
+:: RUN :: nn_v7a-1.csv
+:: features: 1,2,3,4,5,6,7,8,9,10,11,12,13 (all to date)
+:: RUN :: nn_v7a-2.csv
+:: features: 1,2,6,7,8,9,10,12,13
+:: RUN :: nn_v7a-3.csv
+:: features: 1,2,6,7,8,12,13
+:: RUN :: nn_v7a-4.csv
+:: features: 1,2,6,7,8,9,12
+:: RUN :: nn_16d_replicate.csv
+:: features: 1,2,3,4,5,6,7,8,9,12
+:: RUN :: nn_7a-5.csv
+:: features: 1,2,3,4,5,6,7,8,9,12,13 (with new input from sample_med2.csv --> trainingv7_merged2.csv
+:: RUN :: nn_7a-6.csv
+:: features: 1,2,3,4,5,6,7,8,9, 11, 12,13 (--snipe_bids)
+--> output includes .9x prediction(1 or 2 only). some increases to previously lower prob without much decrease (from quick eye-ball)
+--> going to create another sample (sample_med3.csv) that will be 600000. think i can get it processed in time to maybe get a few more same-countries in: 
+	plan is to also only focus on sim_bid_country == 1 (rather than both sim_bid and _country). if faster, will do a larger sample size.
+v7b (just sim_bid_country for performances, will continue to use the oldest boolean sim_bid :: note, writes all sim_bids as 0s, so use the old one!)
+	-- PERFORMANCE: ran 600,000 rows in 30 min +/-
+'simultaneous_bids', 'total_auctions', 'total_devices', 'total_urls', 'avg_num_dev', 'simultaneous_country', 'avg_num_countries', 'total_countries', 'total_bids', 'total_ips', 'avg_num_ips'
+
+:: performance was smoking fast.
+	-- re-ran with sample_m3 added to mix but had a reversal of what i thought was positive progress (with sample large1 and med2)
+	-- re-running again with new network: 20 hidden units and 600 epochs
+:: RUN :: nn_7b-1.csv didn't seem to perform as well as nn_v7a-6.csv (uses consolidated_trainingv7b_merged1.csv)
+:: features: 1,2,3,4,5,6,7,8,9, 11, 12,13 (--snipe_bids)
+	re-ran with network2: 20 h.u. and 600 epoch
+	re-running equiv of nn_7a-6.csv with network2
+	marked decrease in rates of 90,80,70% estimate
+:: RUN :: nn_7b-2-nwork3.csv uses consoldiated_trainingv7b_merged1 
+	-nwork3 == 50 hidden, 600 epoch (increased epoch. can also try increasing hidden and decreasing epochs)
+:: RUN:: nn_v7a-7-nwork3.csv uses consoldiated_trainingv7a_merged2
+	- trying to replicate / tweak results of nn_7a-6.csv
+	- same features: 1,2,3,4,5,6,7,8,9,11,12,13 (removal of snipe-bid)
+	-nwork3 == 50 hidden, 600 epoch
+
+:: FOUND ERROR W/ CONSOLIDATED-TRAINING_V7B_MERGED1 -- had not removed "2s" (duplicate sim_country) -- there were 14. 
+ will re-run and see if there's an improvement
+ - running 2.2 million sample now -- likely done in 15 min or so...
+:: RUN :: nn_7b-3-nwork1.csv 
+	- uses fix in data (2 -> 1)
+	- std network: 50, 500
+
+:: RUN:: nn_run7c-1.csv
+	- uses sample_mega1 to arrive at sim_bid_country -- counts (of 1's) look promising 
+		-- appened this boolean to the end of the consolidated_training3b_urls.csv 
+		-- will also do a run where i append the sim_bid bool from *that* file to the new sample_large2
+	- std network: 50, 500
+	- initial output not promising. lots of .6s but no .7s+ :(
+:: run: nn_run7c-2.csv
+	- uses sample_mega1
+	- reduced input features: 1,2,6,7,8,9,12,13 
+	- std network: 50, 500
+	- suspect even worse results 
+:: RUN:: nn_run7c-3.csv
+	- reduced input features: 1,2,12,13 
+	- std network: 50, 500
+:: RUN:: nn_run7c-4.csv
+	- reduced input features: 2,12,13 
+	- std network: 50, 500
+	- same poor performance
+:: RUN:: nn_run7c-5.csv
+	-- MERGE of sim_bid from urls into consolidated_training7c.csv (which was made from sample data only)
+	-- all features (but seems to only be 11 in total...) :: "hailmary"
+	-- also seems like a bunk submission - nothing from .9 to .5
+
+data/consolidated_testv8a.csv --> from sample_mega1.csv (4 million rows)
+	--> requires sim_bid boolean to be merged w/ it
+	:: can see about re-running it for sim_bid bool and then merging only w/ itself...
+:: run:: data/nn_v8a_b-1.csv
+	:: takes the sim_bid bool from consolidated_train3.csv and plops it into consolidated_testv9a_b.csv (/..b../ marks the merge)
+:: RUN :: data/nn_v8a_b-2.csv
+	added feature scaling (explicitly for NN)
+	[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+:: RUN :: nn_run7c-4.csv
+	:: con_test7c_urls_am1.csv
+	:: w/ feature scaling
+	:: also bunk looking
+:: RUN :: nn_run7d-1.csv
+	:: merge between consolidated_train2.csv + sim_bid (updated from _mega1) and sim_bid_country (booleans)
+	:: no "urls" added. can do that next
+	:: feature scaling enabled
+	--> returned 'nan' : both nn output (err vals) and cvs 
+:: RUN :: nn_run7d-1c.csv :: 
+	-- just testing w/out feature scaling to see if that's the problem
+	-- no nan's 
+	-- going to try again w/ feat_scale but smaller network & epochs
+	-- where as a recent 83.3% (:: run: nn_v7a-2.csv) had a lot of 50%s, this has a bunch of 56%s
+		-- going to run again as well with same input features as that set
+		-- main difference is that 7d-1c used the sample from sample_mega1.csv & v7a-2 used the merges from smaller samples
+		-- v7a-2 used: 
+	:: features: 1,2,6,7,8,9,10,12,13
+	total_bids (1), total_auctions (2), avg_num_dev(6), avg_num_countries(7), avg_num_ips(8), last_bids(9), simultaneous_bids(12), simultaneous_country(13) 
+:: RUN :: nn_run7d-1d.csv :: 
+	-- feat scaling (but with smaller network: 30, 300) :: nan again...
+
+total_bids (1), total_auctions (2), total_devices (3), total_ips(4), total_countries (5), avg_num_dev (6), avg_num_countries (7), avg_num_ips (8), total_urls (9), simultaneous_bids (10), simultaneous_country (11) 
+:: RUN :: nn_run7d-1e.csv ::
+	-- feat_scale off (dead for now)
+	-- 30,300
+	-- reduced feature set: 1, 2, 6,7,8,10,11
+	-- wow. really bad output i think
+:: RUN :: nn_run7d-1e.csv ::
+	-- feat_scale off (dead for now)
+	-- 50,500
+	-- included "TanhLayer" just for shits and giggles
+	-- reduced feature set: 1, 2, 6,7,8,10,11
+-- next up: changing to booleans
+
+features:
+avg_ISP > 1
+avg_country > 1
+avg_device > 1
+total_auc > 0
+total_auc > 10
+total_auc > 100
+total_auc > 1000
+total_bids > 1
+total_bids > 10
+total_bids > 100
+sim_bid || 0, 1
+sim_bid_country || 0,1
+
+
+:: NOTE: SAMPLE MEGA COVERS ONLY 5900 BIDDERS (10% SHY OF TOTAL)
+:: performance good enough to consider running on entire DS 
+:: would require merge w/ "sim_bid_country" since those have been run separately
+:: summary order
+'t_bids1', 'total_devices', 't_bids100', 'total_urls', 'total_auc1000', 'simultaneous_country', 'avg_device2', 'total_auc0', 'total_auc1', 'avg_url2', 'avg_ip2', 'avg_device', 'avg_ip', 'total_auc100', 'total_countries', 'total_bids', 't_bids10', 't_bids1000', 't_bids3000', 'avg_num_ips', 'simultaneous_bids', 'total_auctions', 'avg_url', 'avg_country', 'avg_num_dev', 'avg_num_countries', 'avg_country2', 'avg_num_urls', 'total_auc10', 'total_ips'
+
+:: consolidated file order: (30 in total)
+total_bids(1), t_bids1 (2), t_bids10(3), t_bids100(4), t_bids1000(5), t_bids3000(6), total_auctions(7), total_auc0(8), total_auc1(9), total_auc10 (10), total_auc100 (11), total_auc1000 (12), total_devices (13), avg_device (14), avg_device2 (15), total_ips (16), avg_ip (17), avg_ip2 (18), total_countries (19), avg_country (20), avg_country2 (21), total_urls (22), avg_url (23), avg_url2 (24), avg_num_dev (25), avg_num_countries (26), avg_num_ips (27), avg_num_urls (28), simultaneous_bids (29), simultaneous_country (30)
+
+writing files: consolidated_testv9a.csv
+-- merge of "sim_bid_country_ will come from consolidated_testv8a_b.csv (column "L")
+-- NOTE: should re-od the sim-bid_country with new boolean then it's apples to apples (can get the values out of previous mega's and just merge those two columns and then re-create consolidated files. no biggie. 
+:: RUN :: nn_v9-1.csv :: consolidated_testv9a.csv	
+	-- RAN with TanhLayer :: sholdn't have since id no't know what that is
+	:: only boolean features 
+	2,3,4,5,6,8,9,10,11,12,14,15,17,18,20,21,23,24,29,30
+
+:: RUN :: nn_v9-2.csv :: consolidated_testv9a.csv	
+	-- stand network: 50,500
+	:: only boolean features 
+	2,3,4,5,6,8,9,10,11,12,14,15,17,18,20,21,23,24,29,30
+	-- scored 83.330% (on kaggle)
+
+:: RUN :: nn_v9-3.csv :: consolidated_testv9a.csv	
+	-- stand network: 50,500
+	:: ALL features 
+	-- nothing over .3 so moving on (i.e. booleans does appear to be stronger)
+:: RUN :: nn_v9-4.csv :: consolidated_testv9a.csv	
+	-- network: 10,500
+	:: BOOLEAN ONLY :: 2,3,4,5,6,8,9,10,11,12,14,15,17,18,20,21,23,24,29,30
+:: RUN :: nn_v9-5.csv :: consolidated_testv9a.csv	
+	-- network: 10,500
+	:: Big BOOLEAN ONLY :: 4,5,6,8,10,11,12,18,21,24,29,30
+
+V10:  consolidated_trainv10a.csv --> booleans from all bids (sim_bid only; will run sim_bid_country sep and then merge)
+	-- merge of "sim_bid_country_ will come from consolidated_testv8a_b.csv (column "L") (for now) (replacing col 30)
+
+:: RUN :: nn_v10a-1.csv :: consolidated_testv10a.csv	
+	-- network: 10,500
+	:: Big BOOLEAN ONLY :: 4,5,6,8,10,11,12,18,21,24,29,30
+
+consolidated_testv10_c.csv	 --> merge of sim_bid_country from bid_sum_all_bool1 & _bool2 (there is no consolidated_testv10_b.csv)
+
+:: RUN ::  nn_v10_c1.csv
+	:: Big BOOLEAN ONLY :: 4,5,6,8,10,11,12,18,21,24,29,30
+	-- network: 30,300
+:: RUN ::  nn_v10_c2.csv
+	:: Big BOOLEAN ONLY :: 4,5,6,8,10,11,12,18,21,24,29,30
+	-- network: 50,500
+
+
+v10_d - has boolean for sim_bid_country_auc (col 15) :: which is simultaneous bid from another country and in another auction
+	-- need to make sure total_auc0 is working proprely
+
+'t_bids1', 'total_devices', 't_bids100', 'total_urls', 'total_auc1000', 'simultaneous_country', 'avg_device2', 'total_auc0', 'total_auc1', 'avg_url2', 'avg_ip2', 'avg_device', 'avg_ip', 'total_auc100', 'sim_bid_country_auc', 'total_countries', 'total_bids', 't_bids10', 't_bids1000', 't_bids3000', 'avg_num_ips', 'simultaneous_bids', 'total_auctions', 'avg_url', 'avg_country', 'avg_num_dev', 'avg_num_countries', 'avg_country2', 'avg_num_urls', 'total_auc10', 'total_ips'
+
+	- going to pull col 15 and append to the end of sim_bid_all_bool2 (as well as get the sim_bid from sim_bid_bool1) and then recreate teh consolidated files
+
+
+	-- verified that total_auc0 was making sense (no bug)
+total_bids(1), t_bids1 (2), t_bids10(3), t_bids100(4), t_bids1000(5), t_bids3000(6), total_auctions(7), total_auc0(8), total_auc1(9), total_auc10 (10), total_auc100 (11), total_auc1000 (12), total_devices (13), avg_device (14), avg_device2 (15), total_ips (16), avg_ip (17), avg_ip2 (18), total_countries (19), avg_country (20), avg_country2 (21), total_urls (22), avg_url (23), avg_url2 (24), avg_num_dev (25), avg_num_countries (26), avg_num_ips (27), avg_num_urls (28), simultaneous_bids (29), simultaneous_country (30), simultaneous_country_auc (31)
+
+
+
+:: RUN ::  nn_v10_d1.csv
+	:: Big BOOLEAN ONLY :: 4,5,6,8,10,11,12,18,21,24,29,30,31
+	-- network: 50,500
+	-- file:: consolidated_testv10_d.csv :: pulls from bid_sum_all_bool_merged2 which has all the fields
+:: RUN ::  nn_v10_d2-b.csv --> "-b" to indicate tweaked bidding-y-vals-2.csv
+	:: Big BOOLEAN ONLY :: 4,5,6,8,10,11,12,18,21,24,29,30,31
+	-- network: 50,500
+	-- file:: consolidated_testv10_d.csv :: pulls from bid_sum_all_bool_merged2 which has all the fields
+:: RUN ::  nn_v10_d3-b.csv --> "-b" to indicate tweaked bidding-y-vals-2.csv
+	:: Big BOOLEAN ONLY :: 1,4,5,6,8,10,11,12,18,21,24,29,30,31
+	-- network: 50,800
+	-- file:: consolidated_testv10_d.csv :: pulls from bid_sum_all_bool_merged2 which has all the fields
+
+bidding-y-vals-2.csv:  changes: 393 to 0, 616 to 0, 776 to 0, 1670 to 0  --> eliminated any "1" where the auction data was non-existent (just want to see how it changes answers). 
+
+
+consolidated_trainv10_e.csv:
+total_bids(1), t_bids1 (2), t_bids10(3), t_bids100(4), t_bids1000(5), t_bids3000(6), total_auctions(7), total_auc0(8), total_auc1(9), total_auc10 (10), total_auc100 (11), total_auc1000 (12), total_devices (13), avg_device (14), avg_device2 (15), total_ips (16), avg_ip (17), avg_ip2 (18), total_countries (19), avg_country (20), avg_country2 (21), total_urls (22), avg_url (23), avg_url2 (24), avg_num_dev (25), avg_num_countries (26), avg_num_ips (27), avg_num_urls (28), simultaneous_bids (29), simultaneous_country (30), simultaneous_country_auc (31), num_last_bids (32), num_snipe_bid(33)
+
+:: RUN :: nn_v10_e1
+	:: 'total_bids', 'total_auctions', 'total_devices', 'total_ips', total_countries', 'avg_num_dev', 'avg_num_ips','avg_num_countries', 'simultaneous_bids', 'num_last_bids',
+	:: FILE :: consolidated_trainv10_e.csv (merges last bid and num_snipe_bids from v5: 31 (last bid), 32 (num_snipe)
+	:: 1, 7, 13, 16, 19, 25, 26, 27, 30, 31
+	:: NN: 50, 500
+
+:: RUN :: nn_v10_e2.csv
+	:: all features :: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33
+	:: NN: 50, 500
+	-- doesn't have anything .2 or higher
+
+:: RUN :: nn_v10_e3.csv
+	:: 1, 7, 13, 16, 19, 22, 25, 26, 27, 28, 29, 30, 31, 32
+	:: also low scores: 1x .4, few .3, etc
+
+:: run :: nn_v10_e4.csv (below)
+	:: uses NN 100,10000
+
+NOT DONE :: RUN :: nn_v10_e4-b.csv (uses tweaked bids)
+	:: 1, 7, 13, 16, 19, 22, 25, 26, 27, 28, 29, 30, 31, 32
+	:: NN: 50, 500
+
+
+-- in an effort to replicate the nn_run6d_urls.csv:: merging "total urls" from consolidated_trainv10_d.csv (col W) into col M. (of consolidated_training2)
+	-- new file: con_train2_m10.csv
+	-- also input sim_bid_country_auc from _trainv10_d (AE) as col L
+
+
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, simultaneous_bids, last_bids, 		sim_bid_country_auc, total_urls, sim_bid_country
+
+:: RUN :: nn_v10_f1.csv :: dup of con_test2 w/ num urls (col M)  and sim_bid_country (as col N)
+	:: NN: 50, 500
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12 
+
+:: RUN :: nn_v10_f2.csv
+	:: NN: 50, 500
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12,13
+	:: this had VERY different results with LOTS of 90 and 80s but on very different rows than nn_run6d_urls so re-running to see if it repro's same numbers
+	:: considering how sparse the incident rate of bots in the training, the 80/90% guesses seem to dense to be accurate...
+	:: scrolling to bottom of list, ti's filled w/ a ton of NaNs though... 
+:: RUN :: nn_v10_f2_rep2.csv
+	:: also contained NAN.
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12,13
+	:: issue appears to be a lack of data for those columns (likely copy/paste error).
+	:: fixed and rerunning
+	:: fixed but now there are no 90/80s. and the other one was full of them. wtf.
+:: RUN :: nn_v10_f2_rep3.csv
+	:: rerunning w/ fixed feature values
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12
+	:: thought it was fixed but now there are 90/80s and nan's all over again
+
+re-trying merge: con_train2_m10.csv & con_t2_m10.csv
+simultaneous_country (30) (L), sim_count_auc (31) (M), 
+:: RUN :: nn_v10_f2_rep4.csv
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12
+	:: shitty responses. going to merge num-urls back in (col W) as col 13
+
+:: RUN :: nn_v10_f2_rep5.csv
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12, 13
+	:: scored in at 86%. 
+
+:: RUN :: nn_v10_f2_rep6.csv
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12, 13
+	:: NN: 50, 1000
+	:: appears to be pulling DOWN the prevelance of high prob bidders: 80s become 60s, etc. 
+
+:: RUN :: nn_v10_f2_rep6-b.csv
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12, 13
+	:: NN: 50, 1000
+
+
+:: RUN :: nn_v10_f3-b.csv (-b to indicate tweaked bidder set)
+	:: NN: 50, 1000
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12
+
+:: RUN :: nn_v10_f2_rep7.csv
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12,
+	:: NN: 100, 1000
+	:; nothing over.3
+
+:: RUN :: nn_v10_f2_rep8.csv
+	:: features: 1,2,3,4,5,6,7,8,9,10,11,12,13
+	:: NN: 100, 1000
+	:; strong predictions. some moderation of previous scores but overall THOUGHT improvement
+	:: submitted and got 83.xx percent (again)
+
+:: RUN:: nn_v10_e4.csv
+	:: file :: consolidated_trainv10_e.csv
+	:: features :: 1 - 33
+	:: NN :: 100, 1000
+	:: SUPER small numbers. wtf. as in everything as close to zero as possible
+
+:: RUN:: nn_v10_e5_rep1.csv
+	:: file :: consolidated_trainv10_e.csv
+	:: features :: 1, 7, 13,16,19,22,25,26,27,29,30,32
+	:: NN :: 100, 1000
+	:: dominated by .2s and .1
+
+:: RUN:: nn_v10_e5_rep2.csv
+	:: file :: consolidated_trainv10_e.csv
+	:: features :: 1, 7,13,16,19,22,23,25,26,27,29,30,31,32,33
+	:: NN :: 100, 1000
+	:: dominated by .2s and .1
+
+:: RUN:: nn_v3b_rep1.csv
+	-- attempt at mimicking best results
+	NN:: 100,1000
+	FEATURES: 1,2,3,4,5,6,7,8,9,10,11,12 (full file)
+	: some 80s (including matches to urls)
+	: going to re-run but w/ 50,1000 (vs 100,1000)
+:: RUN:: nn_v3b_rep2.csv
+	NN:: 50,1000
+	FEATURES: 1,2,3,4,5,6,7,8,9,10,11,12 (full file)
+	:: surprisingly not like rep1 at all. much lower values
+:: RUN:: nn_v3b_rep3.csv
+	-- attempt at mimicking best results
+	NN:: 200,1000
+	FEATURES: 1,2,3,4,5,6,7,8,9,10,11,12 (full file)
+	:: again, way super small numbers
+:: RUN:: nn_v3b_rep4.csv
+	-- attempt at mimicking best results
+	NN:: 200,1000
+	FEATURES: 1,2,3,4,5,6,7,8,9,10,11,12 (full file)
+	:: seems to have a strong mix of .9s, 8,7, etc. 
+	CANDIDATE
+
+:: RUN:: nn_v3b_rep4-1.csv
+	-- attempt at mimicking previous run (verifying it was 200, 1000 and not 20,1000
+	NN:: 200,1000
+	FEATURES: 1,2,3,4,5,6,7,8,9,10,11,12 (full file)
+	:: VERY different previous run. going to do 20,1000 
+:: RUN:: nn_v3b_rep4-2.csv
+	-- attempt at mimicking best results
+	NN:: 20,1000
+	FEATURES: 1,2,3,4,5,6,7,8,9,10,11,12 (full file)
+	:: again, very different from rep4. must have been at 200...
+:: RUN:: nn_v10_e6.csv
+	:: BOOLEAN ONLY :: 2,3,4,5,6,8,9,10,11,12,14,15,17,18,20,21,23,24,29,30
+	:: NN: 200,1000
+	:: handful of .7s. NEEDS COMPARISION
+
+:: RUN:: nn_v3b_rep4-3.csv
+	-- attempt at mimicking best results
+	NN:: 50,500
+	FEATURES: 1,2,3,4,5,6,7,8,9,10,11,12 (full file)
+	:: LOOKS REALLY STRONG
+	:: OUCH. scored 72.xx wtf? VERY surprising. i have no idea what a good file is guess... :(
+
+
+current champ: File::  data/consolidated_test3b_urls.csv  ::
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, simultaneous_bids [[as BOOLEAN]], last_bids, num_snipe_bids, total_urls
+
+consolidated_trainv10_e.csv:
+total_bids(1), t_bids1 (2), t_bids10(3), t_bids100(4), t_bids1000(5), t_bids3000(6), total_auctions(7), total_auc0(8), total_auc1(9), total_auc10 (10), total_auc100 (11), total_auc1000 (12), total_devices (13), avg_device (14), avg_device2 (15), total_ips (16), avg_ip (17), avg_ip2 (18), total_countries (19), avg_country (20), avg_country2 (21), total_urls (22), avg_url (23), avg_url2 (24), avg_num_dev (25), avg_num_countries (26), avg_num_ips (27), avg_num_urls (28), simultaneous_bids (29), simultaneous_country (30), simultaneous_country_auc (31), num_last_bids (32), num_snipe_bid(33)
+
+	
+consolidated_Training -> con_train2 :: addition of num_last_bids (to col K in con_train2)
+con_train2 -> con_train3 :: addition of num_snipe_bids (to col L of con_train3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- want to run a logistic regression too... 
+
+-- ran a new sample (sample_med2) and created a new consolidation pair: consolidated_trainingv7a_sampleM2.csv
+-- going to "merge" that with the previous sim-bidder record and hopefully get more sim_bid_countries
+
+-- based on these results, going to see about sampling the *bidder* data -- write a dictionary of the sorted bidder data and then sample 10% of each bidder's actiity
+-- also believe the "counts" for devices, etc is throwing things off a bit. 
+
+rapid-bidder:
+	go through each auction
+	sort the auction by bid time
+	start with a bid time
+	get the next bid
+	compare
+	if <6s apart, then count as a rapid_bidder 
+
+
+what if we could just see what the last few bids looked like -- maybe bots are bidding against one another? 
+
+
+
+consolidated column ordering:
+total_bids, total_auctions, total_devices, total_ips, total_countries, avg_num_dev, avg_num_countries, avg_num_ips, simultaneous_bids, last_bids
+1,2,6,7,8,9,10
+
+auctions / bids / last_bids 
+2 / 1 * 10
+

@@ -1,0 +1,20 @@
+import pandas as pd
+import enchant 
+
+def initialize(): 
+	train_file = raw_input("What is the TRAINING file?    ")
+	test_file = raw_input("What is the TESTING file?     ")
+
+	d_en_us = enchant.Dict("en_US")
+	d_en_us.check("harllo")
+	exit()
+
+	train = pd.read_csv(train_file)
+    test = pd.read_csv(test_file)
+
+	traindata = list(train.apply(lambda x:'%s %s' % (x['query'],x['product_title']),axis=1))
+    testdata = list(test.apply(lambda x:'%s %s' % (x['query'],x['product_title']),axis=1))
+
+
+
+initialize()

@@ -1,0 +1,1236 @@
+crowdflower notes
+
+INPUT:
+
+query:  search term(s) used
+prod_desc: full desc w/ HTML
+median_relevance(3 raters) :: 1 to 4 :: int
+relevance_variane: SD (!!) of scores by raters (not variance as in desc)
+
+ --> can use dictionary / thesauri
+
+
+OUTPUT:
+id 
+prediction: (int) 1 to 4  
+	--> softlayer output (vs sigmoid)
+	--> for predict in prediction ARGMAX(predict) (iirc)
+
+Basic Numbers:
+* 10,158 inputs
+* Meidan Score: 3.3098
+* Mix of "has/doesn't have desc" (w/ mixed results) 
+	--> MAKE FEATURE: bool has/doesn't have desc (TEST VAR)
+* Some HTML (most not) so stripe it 
+	-> MAKE FEATURE"had HTML" (TEST VAR)
+
+
+
+ * (SET OF) FEATURE (s)
+	--> match of "exact" phrase in desc
+	--> match of "portion" phrase in desc 
+		** make it a loop (?) that by length makes a (few?) tries to find matches in desc
+			+ selection via "length of word" (?) or "max char length" (based on combination?)
+			+ ex: 5 wrds in desc: search for exact 2 or 3 (?)
+				--> take 
+
+
+
+
+
+
+if you want to reverse-engineer from (median_relevance, rel_sd) back to the set of individual ratings, that can be done (create a lookup table) and might or might not give insight, so e.g.
+
+median_relevance=4, rel_sd=0.0 -> ratings were (4,4,4)
+
+median_relevance=4, rel_sd=0.471 -> ratings were (4,4,3)
+
+median_relevance=4, rel_sd=0.943 -> ratings were (4,4,2)
+median_relevance=4, rel_sd=1.414 -> ratings were (4,4,1)
+
+and the rarer tuples with n>3 (about ~7% of training set):
+
+median_relevance=4, rel_sd=0.4 -> ratings were (4,4,4,4,3)
+
+median_relevance=4, rel_sd=0.433 -> ratings were (4,4,4,3)
+
+median_relevance=4, rel_sd=0.49 -> ratings were (4,4,4,3,3)
+
+median_relevance=4, rel_sd=0.8 -> ratings were (4,4,4,3,2)
+
+median_relevance=4, rel_sd=1.166 -> ratings were (4,4,4,3,1)
+
+median_relevance=4, rel_sd=1.265 -> ratings were (4,4,4,2,1)
+
+
+
+
+(?<!...)
+Matches if the current position in the string is not preceded by a match for .... This is called a negative lookbehind assertion. Similar to positive lookbehind assertions, the contained pattern must only match strings of some fixed length and shouldn’t contain group references. Patterns which start with negative lookbehind assertions may match at the beginning of the string being searched.
+
+
+prog = re.compile(pattern)
+result = prog.match(string)
+is equivalent to
+
+result = re.match(pattern, string)
+
+re.findall(pattern, string, flags=0)
+Return all non-overlapping matches of pattern in string, as a list of strings. The string is scanned left-to-right, and matches are returned in the order found. If one or more groups are present in the pattern, return a list of groups; this will be a list of tuples if the pattern has more than one group. Empty matches are included in the result unless they touch the beginning of another match.
+
+
+matchObj = re.match( r'dogs', line, re.M|re.I)
+re.I	Performs case-insensitive matching.
+
+
+v1:
+DICT:
+id, rating, 'mean_2wm_d', 'mean_multi_t', 'num_sw_mtch_d', 'pt_part', 'pd_exact', 'num_multi_mtch_d', 'bid_var'', 'num_dw_mtch_t', 'mean_1wm_d', 'mean_1wm_t': , 'mean_2wm_t', 'mean_multi_d', 'num_sw_mtch_t', 'pd_part', 'pt_exact', 'num_multi_mtch_t', 'num_dw_mtch_d'
+
+v1b: 
+--> removal of bid_var (discarded, due to lack of data for test) and rating (moved to its own file)
+
+verified correct output of dict as: 
+id [0], mean_2wm_d'[1], 'mean_multi_t'[2], 'num_sw_mtch_d'[3], 'pt_part'[4], 'pd_exact'[5], 'num_multi_mtch_d'[6], 'num_dw_mtch_t'[7], 'mean_1wm_d'[8], 'mean_1wm_t'[9], 'mean_2wm_t'[10], 'mean_multi_d'[11], 'num_sw_mtch_t'[12], 'pd_part'[13], 'pt_exact'[14], 'num_multi_mtch_t'[15], 'num_dw_mtch_d' [16]
+
+nn_v1_1.csv
+ all cols: 1 - 16 (id == 0)
+
+logit-v1-1.csv
+ all vars. just a quick logit
+	-- had it set to predict_proba so i got probablities when i want class
+
+logit-v1-1.csv
+ all vars. just a quick logit
+	-- mostly outputs "4" (21,000+), a handful of 2's and 1's. no 3's
+
+
+nn_v1_1a.csv
+	-- all vars. 
+	-- fixed multi-class support
+	-- expect to see a lot of 4s and 1s. 
+	-- also running a comparsion:  logit-v1-nnv1-1a.csv
+	-- small network: 10, 10 
+
+nn_v1_2a.csv
+	-- all vars
+	-- network: 20, 100
+	:: logit:  logit-nnv1-2a.csv
+	-- lots of 4s, some 2s, 1s and 3s. 
+	-- going to submit for benchmark. scary!!!
+
+nn_v1_2b.csv  :: PREDICTION SCORE (SUBMISSION) :: .21411 (NOT GOOD...)
+	-- all vars
+	-- network: 20, 100
+	-- FOUND ERROR IN v1_2a: WAS LOOOPING AND GETTING SAME DATA FOUR TIMES (RELIC THAT I REMOVED)
+	:: logit:  logit-nnv1-2a.csv
+	-- lots of 4s, some 2s, 1s and 3s. 
+	-- going to submit for benchmark. scary!!!
+
+nn_v1_3a.csv   :: WORSE !!! :: 0.20xx
+	-- all vars
+	-- network: 20, 500
+	-- just want to see if a bigger convergence cycle helps
+	:: NOTE :: RUN TIME APPEARS TO BE GEOMETRIC: 4x (classes) --> 20 x 500 ... (?)
+	:: slightly more 2s and 3s, slightly less 1s and 4s. 
+	:: since i have submissions to burn for today, going to submit
+
+nn_v1_4a.csv  :: worse again @ 0.20xx
+	-- all vars
+	-- network: 50, 100
+
+::	MIMIC OF VARIANCE AS FEATURE FOR TEST SET		::
+- obtain mu & sigma from worker score variance  
+	mu = 1/m * (sum(x)) == MU:    0.377863457373 --> made to float to 4::   0.3779
+	sigma (variance) = 1/m * (sum (x - mu)^2)  == SIGMA:    0.151856619769 --> to 4 :: 0.1519
+		-- does this need to be rounded?
+
+- Across Test Set Apply: random.gauss(mu, sigma)
+	Gaussian distribution. mu is the mean, and sigma is the standard deviation. This is slightly faster than the normalvariate() function defined below.
+
+- == new feature 
+
+
+v2: (files saved as train-v2-2.csv)
+id [0], 'mean_2wm_d'[1], 'mean_multi_t'[2], 'num_sw_mtch_d'[3], 'pt_part'[4], 'pd_exact'[5], 'num_multi_mtch_d'[6], 'num_dw_mtch_t'[7], 'mean_1wm_d'[8], 'score_var'[9], 'mean_1wm_t'[10], 'mean_2wm_t'[11], 'mean_multi_d'[12], 'num_sw_mtch_t'[13], 'pd_part'[14], 'pt_exact'[15], 'num_multi_mtch_t'[16], 'num_dw_mtch_d'[17]
+
+
+
+nn_v2.csv :: 
+	- introduction of variance (and the manufactured version of it)
+	-- got a REALLY bad score: .18x
+
+-- need to pursue SVM (maybe?), categorization options, etc
+	-- doing so but not getting good answers at the moment. 
+
+nn_v2-2.csv
+	- boolean features only: 4, 5, 14, 15
+	- all 4s (21k) and 1s (1k). no 3s or 2s...
+	- network: 50, 100
+
+nn_v1-4b.csv
+	- boolean features only: 4, 5, 13, 14  (from v1 version of file: train_sum_v1_b.csv)
+	- all 4s (21k) and 1s (850). no 3s or 2s...
+	- network: 50, 100
+
+nn_v2-3.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- network: 50, 100  --> will also do one as 20,100
+	- mostly 4s, some 2s and 1s; no 3s
+	- score dropped AGAIN to .17
+
+nn_v2-4.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+		-- same as v2-3 except for network
+	- network: 20,100
+	- mostly 4s (as expected, unfortunately) but w/ some 2s and 1s
+
+svm-v2-1.csv & v2-2.csv
+	- ran with all features
+	- getting all 4s and 1s, no 2s or 3s. 
+	- will run again mimicking the nn above to see how they're affected
+	- both "scores" (scikit-learn classifier.score()) was at 60% match. not great...
+	- v2-2 used LinearSVC() vs SVC() --> ever-so slight advantage to SVC so will use that moving forward
+
+svm-v2-3.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- again mostly 4s and 1s but an increase in 1s (to 2k vs 1k), some 2s, no 3s
+	- weird. score increased to .27!  (better than previous best!)
+
+svm-v2-4.csv
+	- all features save invented variance: 1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17
+	- .61 score w/ 21k 4s' and 760+/- 1's. no 2s or 3s
+
+svm-v2-5.csv
+	- EXACT match, mean match & num features: 1,2,3,5,6,7,8,10,11,12,13,15,16,17
+	- ALL 4s!! wtf?
+
+svm-v2-6.csv
+	- mean match & num features: 1,2,3,6,7,8,10,11,12,13,14,16,17
+
+svm-v2-3-rep1.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- verified results. 
+
+svm-v2-7.csv
+	- mean match only: 1,2,8,10,11,12
+	- all 4s
+
+svm-v2-8.csv
+	- retesting mean match and bool match: 1,2,5, 8,10,11,12,15
+	- all 4s. 
+
+svm-v2-9.csv
+	- mean match and partial matches: 1,2,4,8,10,11,12, 14
+	- some 1s but total summation lower than -v2-3, so likely not an improvement
+
+svm-v2-3-b.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- using LinearSVC because best scores are only w/ 1s and 4s and i feel like there should be some 2s and 3s in there... 
+	= STILL no 2s or 3s BUT the overall score is less so this is a candidate for submission ... 
+
+logit-v2-1.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- replication of best score with logistic regression (just for shits and giggles)
+	- total score is 87xx so assuming it's worse than previous submissions... (nn vs svm)
+
+svm-v2-b1.csv
+	- all features (save fake variance) using PCA and pipeline (just to test)
+	- lower summation than svm-v2-3-b.csv...
+
+svm-v2-3-b2.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- using PCA
+	-- ever so slight increase in score from non-PCA version... 
+	-- going to turn PCA off for the time being
+
+svm-v2-3-b2.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- feature scaling (was in recommendations from scikit-learn)
+	- HUGE increase in total summation
+	- going to try w/ all features and use feature scaling (just to make sure)
+
+svm-v2-3-c1.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	-classification = svm.SVC(C=.9, kernel='sigmoid', degree=3, gamma=0.0, coef0=0.0, shrinking=True, probability=False, tol=0.001, cache_size=200, class_weight='auto', verbose=False, max_iter=-1, random_state=None)
+	- ALL 4s
+
+svm-v2-3-c2.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- classification = svm.SVC(C=.9, kernel='sigmoid', degree=3, gamma=0.0, coef0=0.0, shrinking=True, probability=False, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None)
+	- all 4s again
+
+svm-v2-4.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- trying "svr" which is suppose to be a regression version... 
+	- appears to output floats rather than single-digits
+	- going to RE-RUN and w/round
+
+svm-v2-5.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- trying "svr" which is suppose to be a regression version... 
+	- round 1 is to one float, not "one digit" so redoing w/ tweaked round
+
+
+svm-v2-6.csv
+	- boolean features && mean match features : 1,2,4,5,6,7,8,10,11,12, 14, 15, 16
+	- trying "svr" which is suppose to be a regression version... 
+	- BEST SCORE YET:: .30 heh
+
+
+svm-v
+
+In SVC, if data for classification are unbalanced (e.g. many positive and few negative), set class_weight='auto' and/or try different penalty parameters C.
+C=1.0, kernel='rbf', degree=3, gamma=0.0, coef0=0.0, shrinking=True, probability=False, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None
+walmart API key: d7rf2yhcrfm46xq8ep8farvq
+max 5k calls per day, 5 calls per sec (unclear ATM if that one query == 1 call or if a call can contain multiple queries. thinking former)
+
+
+some data info:
+#4: 6171 
+#3: 1737
+#2: 1476
+#1: 774
+
+V3:  
+--> introduction of a raw_percent_score that is NOT the mean of the various query-lengths but a simple summation (because i 	THINK this is what they did in the benchmark code)
+ID[0], 'mean_2wm_d'[1], 'mean_multi_t'[2], 'num_sw_mtch_d'[3], 'pt_part'[4], 'pd_exact'[5], 'multi_wm_t'[6], 'num_multi_mtch_d'[7], 'two_wm_d'[8], 'num_dw_mtch_t'[9], 'mean_1wm_d'[10], 'score_var'[11], 'mean_1wm_t'[12], 'mean_2wm_t'[13], 'mean_multi_d'[14], 'num_sw_mtch_t'[15], 'pd_part'[16], 'pt_exact'[17], 'multi_wm_d'[18], 'num_multi_mtch_t'[19], 'two_wm_t'[20], 'num_dw_mtch_d'[21]
+
+svm-v3-1.csv
+	- boolean features && mean match features : 1,2,4,5,6,8,10,12,13,14,16,17,18,20
+	- lower total summation than -v2-6.csv 
+	- will mess w/ model and see about making a submission tomorrow
+
+svm-v3-2.csv
+	- all features
+	- higher total summation
+
+nn-v3-1.csv
+	- boolean features && mean match features : 1,2,4,5,6,8,10,12,13,14,16,17,18,20
+	- network: 20, 300
+	- still seeing really high total summations 
+	- going to re-run with a bigger network just to see how it that changes things...i think NN is a deadend (but do not understand why)
+
+nn-v3-2.csv
+	- boolean features && mean match features : 1,2,4,5,6,8,10,12,13,14,16,17,18,20
+	- network: 30, 500
+
+---- FEATURES!!!!  
+V4:  "fixes" (or tries to address) the use of plurals and possessives:: girls to girl and pots to pot, etc
+	-- NO OTHER CHANGES :: feature list below (copied from v3)
+
+ID[0], 'mean_2wm_d'[1], 'mean_multi_t'[2], 'num_sw_mtch_d'[3], 'pt_part'[4], 'pd_exact'[5], 'multi_wm_t'[6], 'num_multi_mtch_d'[7], 'two_wm_d'[8], 'num_dw_mtch_t'[9], 'mean_1wm_d'[10], 'score_var'[11], 'mean_1wm_t'[12], 'mean_2wm_t'[13], 'mean_multi_d'[14], 'num_sw_mtch_t'[15], 'pd_part'[16], 'pt_exact'[17], 'multi_wm_d'[18], 'num_multi_mtch_t'[19], 'two_wm_t'[20], 'num_dw_mtch_d'[21]
+
+svm-v4-1.csv
+	- boolean features && mean match features : 1,2,4,5,6,8,10,12,13,14,16,17,18,20
+	-- improved score to .38 (7%+ improvement)
+
+
+---- 
+v5:  addition of new concept "min_coverage"
+id[0], 'min_coverage_d'[1], 'mean_2wm_d'[2], 'pt_part'[3], 'mean_1wm_d'[4], 'num_multi_mtch_d'[5], 'min_coverage_t'[6], 'mean_2wm_t'[7], 'mean_1wm_t'[8], 'num_multi_mtch_t'[9], 'num_sw_mtch_d'[10], 'min_coverage_a'[11], 'num_dw_mtch_d'[12], 'num_sw_mtch_t'[13], 'multi_wm_t'[14], 'num_dw_mtch_t'[15], 'multi_wm_d'[16], 'score_var'[17], 'mean_multi_t'[18], 'pd_exact'[19], 'two_wm_d'[20], 'mean_multi_d'[21], 'pd_part'[22], 'pt_exact'[23], 'two_wm_t'[24]
+
+
+
+MU:  0.3779
+SIGMA:    0.1519
+
+svm-v5-1.csv
+	- boolean, mean matches && min_coverages : 1,2,3,4,6,7,8,11,14,16,18,19,20,21,22,23,24
+	- score was only .27 which is really surprising because the score was the highest yet (.35)
+
+V6:  - same min_coverage but w/ tweak to calculation :: concretely, removal of pt_part
+	- also adjustment to calculation of "distance" rather than just the first and last pairs being subtracted, i subtract them all
+	- from literature, it appears i *may* be suppose to subtract each pair from one another and then select the min distance from all those different combinations. it's unclear. 
+
+svm-v6-1.csv
+	- boolean, mean matches && min_coverages : 1,2,3,4,6,7,8,11,14,16,18,19,20,21,22,23,24
+	- lower score again (like last night) -- even lower than v5-1 : .24 (but "score" was .4xx ...)
+
+- because of git issues, i re-ran v4 to verify i could reproduce the results. √√√√√√  :)
+
+V6-2 :: adjustment to min_coverage
+	- MinCover is defined as the length of the shortest document segment that covers each query term at least once in a document. In the above example, if the query is {t1,t2}, its MinCover would be 2, but if the query is {t1,t2,t4}, its MinCover would be 5 (the length of the segment from the second position to the sixth position).
+	--> shooting to better calcuate the min_coverage so that if it's only two terms, then it's the distance between the two but if it's three+ terms, then its' the distance from the last two terms in the locations array --> maybe they need to be sorted?? 
+
+
+svm-v6-2.csv
+	- uses v6-2 file: score: .2676
+	- boolean, mean matches && min_coverages : 1,2,3,4,6,7,8,11,14,16,18,19,20,21,22,23,24
+	- still not an improvement (but better than v6-1 and v5-1) @ 0.35093
+	- seems to be a general downward pressure on the labels -> 4s to 3s, etc 
+
+
+v7:  
+	- pursuing "min pair distance"  √
+	Definition 3 (Minimum pair distance (MinDist)) The minimum pair distance is defined as the smallest distance value of all pairs of unique 	matched query terms. Formally, MinDist = minq1,q2∈Q∩D,q16=q2 {Dis(q1, q2; D)}.  
+	For example, the MinDist of the example document d for query Q = {t1,t2,t3} is 1.
+	--> requires doing a subtraction for each distance within the locations and then choosing the LOWEST value
+
+	--> WILL ALSO consider a "sort" on the distances so that we really are getting the min distance √
+	: right now, the algo just takes the "last two" to derive the distance 
+		when it should probably be sorted and THEN calc distance based on last two in array
+	--> evaluate titles and desc separately (rather than as one assignment) 
+
+	-- found a bug in v6 where it wasn't quite accounting for all the variants of query_ln < 2   √
+		-- believe it's fixed now
+
+ ** the changes you made to the length (not pair, but min distance) appear to get lower numbers now that you've sorted them 
+
+ID[0], 'min_coverage_d'[1], 'mean_2wm_d'[2], 'pt_part'[3], 'mean_1wm_d'[4], 'num_multi_mtch_d'[5], 'min_coverage_t'[6], 'mean_2wm_t'[7], 'mean_1wm_t'[8], 'num_multi_mtch_t'[9], 'num_sw_mtch_d'[10], 'min_coverage_a'[11], 'num_dw_mtch_d'[12], 'num_sw_mtch_t'[13], 'min_pair_dist_a'[14], 'multi_wm_t'[15], 'min_pair_dist_d'[16], 'num_dw_mtch_t'[17], 'multi_wm_d'[18], 'min_pair_dist_t'[19], 'score_var'[20], 'mean_multi_t'[21], 'pd_exact'[22], 'two_wm_d'[23], 'mean_multi_d'[24], 'pd_part'[25], 'pt_exact'[26], 'two_wm_t'[27]
+
+
+
+svm-v7-1.csv
+	- boolean, mean matches && min_coverages : 1,2,3,4,6,7,8,11,14,15,16,18,19,21,22,23,24,25,26,27
+	- score: 
+	- WTF?  there was a "5" as a score of relevance. huh? maybe something to do w/ the rounding? 
+
+svm-v7-3.csv 
+	- boolean, mean matches && min_coverages : 1,2,3,4,6,7,8,11,14,15,16,18,19,21,22,23,24,25,26,27
+	- score: .22 -- > wtf?? very surprising
+
+-- otherr test examples. unclear why i'm getting 4's... 
+
+svm-v7-6.csv 
+	- boolean, min_pair_dist only: 3,14,19,22,25,26
+
+
+- then started looking around on forums. there was a script that said it got .58 or something that used a pipeline for SVD (PCA) and the regular SVM. but for me it output all 4s w/ a few 3s but nothing smaller. 
+- going to investigate the presence of the 5...
+
+
+svm-v7-b1.csv (USES V7 file for non-TF/IDF features!!!)
+	- seeks to combine TF/IDF features w/ non-TF/IDF features
+	- TF/IDF, boolean, mean matches && min_coverages : 1,2,3,4,6,7,8,11,14,15,16,18,19,21,22,23,24,25,26,27
+	:: (kaggle-) scored .42xx
+	
+svm-v7-b2.csv
+	- TF/IDF, boolean, min_pair_dist : 3,14,16,19,22,25,26
+	- score was only like .38 so i'm going to hold off on submission for the moment and do another run
+
+svm-v7-b3.csv
+	- TF/IDF, boolean, min_pair_dist : 3,19,26
+	- ONLY TITLE (not description)
+	- score ("best score" -> not the submit score...): .531
+
+svm-v7-b4.csv
+	- TF/IDF, boolean, means, coverage, min_pair_dist : 3,6,7, 8,15, 19, 21, 26, 27
+	- ONLY TITLE (not description)
+	- Run-time Score: .561
+	- New Best: Kaggle Score: .56599
+
+svm-v7-b5.csv
+	- ONLY TITLE (not description):: TF/IDF, boolean, means, coverage, min_pair_dist : 
+		3,6,7, 8,,15, 19, 21,22,25, 26, 27
+		--> except for description booleans
+	- runtime score: .569 --> kaggle: 57.253
+
+svm-v7-b6.csv
+	- ONLY TITLE (not description)  
+		TF/IDF, boolean, means, coverage, min_pair_dist + num_sw_mtch_t (13) : 
+		3,6,7, 8, 13, 15, 19, 21,22,25, 26, 27
+		 --> except for description booleans & desc means 
+	: runtime: .564
+
+svm-v7-b7.csv
+	- ONLY TITLE (not description):: TF/IDF, boolean, means, coverage, min_pair_dist : 
+		3,6,7, 8,,15, 19, 21,22,25, 26, 27
+		--> except for description booleans
+	- twist to -v7-b5 but with kernel = poly 
+	- runtime: 0.437
+
+svm-v7-b8.csv
+	- Only Title: TF/IDF + Booleans (all) :: 3,22,25,26
+	- back to 'rbf'
+	- : run time : 0.577
+	:: new best:  0.57367
+
+svm-v7-c1.csv
+	- Only Title: TF/IDF + Booleans (all) :: 3,22,25,26
+	- introduction of word vectors...(but i think i've fucked it up...)
+	--> FILE WAS ALL FUCKED (CODE WAS FUCKED --> see v8)
+
+-- FEATURE IDEAS:  WORD VECTORS & SIMILARITIES 
+
+ID[0], similarities[1], 'min_coverage_d'[2], 'mean_2wm_d'[3], 'pt_part'[4], 'mean_1wm_d [5], 'num_multi_mtch_d'[6], 'min_coverage_t'[7], 'mean_2wm_t'[8], 'mean_1wm_t'[9], 'num_multi_mtch_t'[10], 'num_sw_mtch_d'[11], 'min_coverage_a'[12], 'num_dw_mtch_d'[13], 'num_sw_mtch_t'[14], 'min_pair_dist_a'[15], 'multi_wm_t'[16], 'min_pair_dist_d'[17], 'num_dw_mtch_t'[18], 'multi_wm_d'[19], 'min_pair_dist_t'[20], 'score_var'[21], 'mean_multi_t'[22], 'pd_exact'[23], 'two_wm_d'[24], 'mean_multi_d'[25], 'pd_part'[26], 'pt_exact'[27], 'two_wm_t'[28]
+
+V8:  INTRODUCTION OF SIMILIARITIES 
+	-- for TITLE ONLY 
+
+svm-v8-1.csv
+	- sim (title only), booleans (all): 1,4,23,26,27
+	- ran with beat-benchmark because was having issues with ../ml.py
+		--> the score was NEGATIVE? and the output was MOSTLY 4s and 2s. didn't see any 1s or 3s
+	- HOWEVER, i wanted to simply run it through beat-benchmark WITHOUT the tf/idf but it was "breaking" when i did that
+
+
+svm-v8-2.csv
+	- ONLY TITLE (not description):: TF/IDF, boolean, means, min_pair_dist : 
+		1, 4, 8, 9,16, 20, 22,23,26,27,28
+		--> except for description booleans
+logit-v8-1.csv
+	- sim, title bools: 1, 4, 27
+
+
+svm-v8-3.csv
+	- TF/IDF, sim, title bools: 1, 4, 27
+	- runtime : 0.573
+
+svm-v8-4.csv
+	- TF/IDF, sim : 1   --->  HAVING TROUBLE REPRODUCING THIS:  THE DIMENSIONS SEEM TO BE OFF
+	- runtime: 57.5
+
+svm-v8-5.csv
+	- sim, title bools (NO TF/IDF)
+	- really low scores 
+
+svm-v8-6.csv
+	- sim, ALL bools (NO TF/IDF)
+	- really low scores 
+
+svm-v8-7.csv
+	- sim, bools (title), min_pair: 1,4,20,27
+	- runtimes: 52's & 53's
+
+nn-v8-1.csv
+	- same as svm-v8-1 but w/ nn (EXCEPT no TF/IDF)
+	- sim (title only), booleans (all): 1,4,23,26,27
+	- Network: 20, 50  --> as "quickie" because tried to run at 20,500 but after 45 min it hadn't finished and suspecting issue with code (for some reason)
+	==> note as "softmaxlayer"  :: 
+	--> had an issue with the selection of best (missing .argmax)
+
+nn-v8-1.csv
+	- same as svm-v8-1 but w/ nn (EXCEPT no TF/IDF)
+	- sim (title only), booleans (all): 1,4,23,26,27
+	- Network: 10, 200  (since i know it WILL finish)
+	- used softmaxlayer and the output was all 1's. not sure wtf is wrong with the network. switching back to sigmoid (for probability)
+
+nn-v8-2.csv
+	- same as svm-v8-1 but w/ nn (EXCEPT no TF/IDF)
+	- sim (title only), booleans (all): 1,4,23,26,27
+	- Network: 10, 200  :: using sigmoid -- > looks like for softmaxlayer you just use preds.argmax() and that's it (not the index)
+
+nn-v8-2.csv
+	- sim (title), boolean (pt_part): 1,4
+	- 20, 100
+	- Output was only 1's & 4s (mostly 4s)
+
+
+ TO DO:  try to create a NN work with the word vector that maps to the query (which is ALSO turned into a vector) ?? 
+
+svm-v8-8.csv
+	- TF/IDF, sim --> TF/IDF uses custom stopwords : 1  --> USED 1,4 (pt_part)
+	- runtime: 57.5
+	==> PER NOTE ABOVE: CANNOT REPRO _v8-4.csv :: DIMENSIONS ARE OFF. (10158,) vs (10158,x)
+	** NOTES MUST BE WRONG:: CODE BREAKS WITH JUST "1 FEATURE" PASSED TO IT BUT DOESN'T WHEN IT'S TWO+ 		FEATURES:
+	--> suspecting it's 1,4 (similarity and pt_part boolean)
+
+	--> run time:  0.579 BUT score dropped!!! (.55149)
+
+svm-v8-9.csv
+	:: TF/IDF + Sim + PT-Part: 1, 4
+	:: SVD: 300, 500 (vs 200, 400)
+	:: runtime: 0.584  --> .58201
+	:: BEST SCORE SO FAR	
+
+
+
+
+
+
+svm-v8-9_b.csv
+	:: same as before with just 'english' as the stopword
+	:: hitting .6 in the svm --> runtime: .59
+	--> surprisingly: lower score!!! .57870
+
+svm-v8-10.csv
+	:: same as 9 (cols: 1, 4)
+	:: seeing results, changed "svm__C" to 12, 15 from 10, 12
+	:: runtime: .586 --> gridsearch selection says : 300, 15 are "best"
+	:: dropped AGAIN. suspecting "overfitting"... 
+
+svm-v8-11.csv
+	:: as as 9 (cols: 1, 4)
+	:: runtime: 0.582
+	:: svd__n_components' : [250, 250]
+
+
+---*** rank_avg2.csv 
+	--> uses ensembler
+	--> combined _v7_b8, v8-4, v8-9, v8-10, v8-11
+	--> score: .60xx
+
+
+svm-v8-11.csv
+	:: as as 9 (cols: 1, 4)
+	:: 'svd__n_components' : [250, 350]
+	:: runtime: 0.586
+
+svm-v8-12.csv
+	:: sim, pt_part, min_pair_dist_t, pd_part (cols: 1, 4, 20, 26)
+	:: runtime: .527
+
+svm-v8-13.csv
+	:: sim, pt_part, min_pair_dist_t, pd_part, min_coverage_d', mean_1wm_d, min_coverage_t', mean_1wm_t'
+	:: cols: 1, 4, 5,7,9, 20, 26)
+	√  :: (experiment)     param_grid = {'svd__n_components' : [250, 300, 350, 400],  √
+	0.539 @ 300, 12 (seems consistent)
+
+svm-v8-14.csv
+	:: sim, pt_part: 1,4 
+	 {'svd__n_components' : [200, 200, 300, 400], 
+                  'svm__C': [12, 15]}
+	:: runtime looks strong at 300, 15 but i'm wondering if that's overfitting as i was seeing previously...
+	Best score: 0.589
+	Best parameters set:
+	svd__n_components: 300
+	svm__C: 15
+	--> seems like the same as what was run last night... 
+
+svm-v8-15.csv
+	:: sim, pt_part, min_pair_dist_t, pd_part, min_coverage_d', mean_1wm_d, min_coverage_t', mean_1wm_t'
+	:: cols: 1, 4, 5,7,9, 20, 26)
+	param_grid = {'svd__n_components' : [200, 250, 275, 300], 
+                  'svm__C': [8, 10, 12, 15]}
+
+	 0.560
+	Best parameters set:
+	svd__n_components: 200
+	svm__C: 8
+
+
+---*** rank_avg3.csv 
+	:: -v7-b1, -v7-b4, -v7-b6, -v7-b8, -v8-3, -v8-8, -v8-9, -v8-10, -v8-11, -v8-13, -v8-14, v8-15
+	:: SMALL DROP in score: to .60389 (vs .60428)
+	--> next time trim down to just the best scores (this included a few lower ranking scores i think)
+	--> i.e. be a bit more discriminate 
+
+*** MORE EXPERIMENTS:
+	- verify distance and min_coverage are good (no bugs)  √
+	- use other stopwords (not your custom list)
+		== for tf/idf and for sim between pt and query (re-run for v9)
+	- mix of title and description (tf/idf)
+	- sim between title and description 
+	- cosine 
+
+**** V9 ***** 
+	-> re-run of bool w/ tweak to stoplist (for similiarity)
+	--> when running the actual svm, will start experimenting with mixes of title and description	
+	--> cosine still not working
+	--> ALSO includes query length (so will need to experiment with that a bit...NO IDEA if it will help)
+
+
+ID [0], similarity[1] 'query_ln' [2], 'min_coverage_d'[3], 'mean_2wm_d'[4], 'pt_part'[5], 'mean_1wm_d'[6], 'num_multi_mtch_d'[7],'min_coverage_t'[8], 'mean_2wm_t'[9], 'mean_1wm_t'[10], 'num_multi_mtch_t'[11], 'num_sw_mtch_d'[12], 'min_coverage_a'[13], 'num_dw_mtch_d'[14], 'num_sw_mtch_t'[15], 'min_pair_dist_a'[16], 'multi_wm_t'[17], 'min_pair_dist_d'[18], 'num_dw_mtch_t'[19], 'multi_wm_d'[20], 'min_pair_dist_t'[21], 'score_var': [22], 'mean_multi_t'[23], 'pd_exact'[24], 'two_wm_d'[25], 'mean_multi_d'[26], 'pd_part'[27], 'pt_exact'[28], 'two_wm_t'[29]
+
+
+svm-v9-1.csv
+	- TF/IDF, sim, pt_part (just to see how it compares with svm-v8-9.csv)
+	'svd__n_components' : [200, 250, 275, 300], 
+                  'svm__C': [8, 10, 12, 15]}
+	- Best score: 0.567 @ svd__n_components: 300  svm__C: 12
+	- use of stopwords APPEARS to be hurting score in this case...
+	-- ACTUALLY: note that there was an ERROR in my data entry: ended up i did 'mean_2wm_d'(the new 4)
+
+svm-v9-2.csv  *** NOT DONE **** 
+	- same as above: 	- TF/IDF, sim, pt_part (just to see how it compares with svm-v8-9.csv)
+	- "fix" back to same settings: :: SVD: 300, 500 && 10, 12
+	--> because it doesn't seem to hurt will use:  'svd__n_components' : [275, 300, 500], 'svm__C': [10, 12, 15]}
+
+svm-v9-3.csv
+	- sim, pt_part: 1, 5
+	- runtime numbers are looking better already
+	Best score: 0.587 @@  
+	svd__n_components: 300 svm__C: 15  
+	--> SLIGHT improvement to -v8-9.csv (not submitted yet)
+
+svm-v9-4.csv
+	- sim, pt_part, query_ln: 1,2,5
+	- score:  0.543 @ 275, 10
+
+svm-v9-5.csv
+	- pt_part, pd_part, query_ln, mean_1wm_t, mean_1wm_d, min_cov_t, min_pair_dist_t: 2, 5, 6, 8, 10, 21, 27
+	-- NOTE: NO SIMILARITY INCLUDED
+	score: 0.557 @ 275, 10
+	--> Hmmm, there appears to be a file issue (as in i don't hae a 6...)
+
+svm-v9-5.csv
+	- pt_part/exact, pd_part/exact, query_ln, mean_1wm_t, mean_1wm_d, min_cov_t, min_pair_dist_t: 
+	- 2, 5, 6, 8, 10, 21, 24, 27, 28
+	score: 0.556 @ 275, 10
+	--> Hmmm, there appears to be a file issue (as in i don't hae a 6...)
+
+svm-v9-6.csv
+	- sim, pt_part/exact, pd_part/exact, query_ln, mean_1wm_t, mean_1wm_d, min_cov_t, min_pair_dist_t
+	- (so same as above but w/ sim added)
+	- 1, 2, 5, 6, 8, 10, 21, 24, 27, 28
+	score: 0.553 @ 275, 10
+	--> Hmmm, there appears to be a file issue (as in i don't hae a 6...)
+
+svm-v9-7.csv
+	- sim, pt_part, tf/idf (pt & pd): 1,5
+	- LARGE SCORE DROPS	
+		score: 0.502 @ 275, 10
+
+svm-v9-8.csv
+	- sim, pt_part, TF/IDF (PD ONLY): 1,5 
+	score: 0.447 @ 300, 15
+
+
+
+
+V9 - ATTEMPT at adding "cosine" of tfidf vectors. it's a ratio of the query & prod_title as a product (of q & p_t) divided by their absolute product
+	- also addition of a few measurement words to the stoplist
+
+
+
+-------
+
+IDEAS ::
+ - from reading the 1st place finish from FB competition, it appears it's "okay" to REMOVE data from a test set
+	-> for example, maybe remove "4s and 3s" where the product title has ZERO matches
+	-> get counts for 4s with NO pd --> candidate?
+		--> 3s & 4s w/ no PD == 5917 @ 4s: 4554  
+		--> NOT a good idea to remove since MOST of the 3s and 4s don't have PDs
+			--> INDICATIVE OF FOCUSING ON product titles!!
+
+ - looking for "anaomolies" --> products w/ 3s and 4s but NO pt_part or pd_part
+	--> 72 @ rating == 4
+	-->  56  --> see below for list
+
+		--> what if there was an "is_anamalous" flag? such that if it's a 1 or 2 but it's an EXACT match
+			@ 1 or 2 w/ PT_EXACT == 35
+	OR "is_anamalous" if 3 or 4 BUT no PT / PD_PART? 
+			(per above) == 128
+
+	--> after getting score am going to look at how often these anamolies occur within the TEST set to see how i should approach the next step
+
+	:: BEFORE flat-out removing the data from the training set, i'm going to instead focus on creating a boolean of anom_typeA and anom_typeB : A : no match for pt / pd but 3 or 4; B == exact match but 1 or 2 (v10)
+
+- can additionally look into splitting the 3- and 4-word+ from being one group
+	:: 4-word queries == 925
+	:: 5-word+ == 150
+
+	--> this all feeds into a good vote / blending option
+
+  :: TRAINING /TEST V10 ::
+
+using a cf_y_alt1:
+	- has all ana_typeA and _typeB REMOVED from file
+ 	--> FYI after looking at anamolies they may be synomnyms like "fridge" for "refrigerator" 
+	--> dictionary (???) or theasaurs?  if ana_typeA -> use thesaurus?
+
+  :: having some issues w/ the loop. going to just scrub v9 and call it v10.
+	->> spiderman consistently off . harely davidson consistently off. spellcheck would catch 90%+ of refrigerator
+	--> created CUSTOM TRAIN:  cf_train_alt1-a.csv (where i removed all bad rows)
+svm-v10-1.csv
+	- sim, tf/idf, pt-part: 1, 5
+	score: 0.613 @ 275, 10
+	--> surprisingly lower score: .56325
+
+
+
+:: TODO ::
+	- spellcheck (refrigerator vs refrigirator)  √
+	- brandname dictionary 
+		spiderman vs spider-man
+		harleydavidson vs harley-davidson / harley davidson
+		iphone vs iphone case, etc
+	- quilts and bedspreads
+
+
+---- BETTER :: 
+	- look up the query on walmart: what is the category (and potentially sub /parent)
+	- loop up the PRODUCT on walmart: what is the category (and potentially sub/parent)
+	--> matches?   if query and product are in the "same category" that's also pretty telling...
+
+V11: 
+-> SPELL CHECK FOR ALL FIELDS. NAME CHECKS LIKE 'HARLEY-DAVIDSON' INSTEAD OF HARLEYDAVIDSON
+-> QUERY IDS TO LOOK INTO
+
+:: TRAINING :: 
+Remaining TYPE A ANOMALIES (36)
+[1035, 11981, 12558, 12609, 13283, 14009, 14125, 14463, 16513, 16941, 17406, 17672, 17848, 18304, 18630, 19237, 20958, 21321, 21383, 21532, 23050, 23942, 26010, 2616, 26317, 2821, 29068, 30223, 31317, 3194, 4186, 4554, 4829, 7154, 7814, 9659]
+
+Remaining TYPE B ANOMALIES (36)
+[10201, 10420, 1078, 10931, 11439, 11758, 11974, 1250, 12621, 12727, 14100, 14569, 16757, 16788, 19070, 2092, 20960, 20971, 21542, 23088, 24112, 24228, 25120, 2861, 29369, 29858, 31645, 3532, 3650, 4896, 5217, 5721, 6637, 7427, 9460, 9645]
+
+new field: TypeA and Type B
+
+ID[0], sim[1], 'query_ln'[2], 'min_coverage_d'[3], 'mean_2wm_d'[4], 'pt_part'[5], 'mean_1wm_d'[6], 'num_multi_mtch_d'[7], 'min_coverage_t'[8], 'mean_2wm_t'[9], 'mean_1wm_t'[10], 'num_multi_mtch_t'[11], 'anom_typeB'[12], 'anom_typeA'[13], 'num_sw_mtch_d'[14], 'min_coverage_a'[15], 'num_dw_mtch_d'[16], 'num_sw_mtch_t'[17], 'min_pair_dist_a'[18], 'multi_wm_t'[19], 'min_pair_dist_d'[20], 'num_dw_mtch_t'[21], 'multi_wm_d'[22], 'min_pair_dist_t'[23], 'score_var'[24], 'mean_multi_t'[25], 'pd_exact'[26], 'two_wm_d'[27], 'mean_multi_d'[28], 'pd_part'[29], 'pt_exact'[30], 'two_wm_t'[31]
+ 
+(NOTE:: for test, it writes zero as anomalous -- maybe something you could use after you get category in there???)
+
+svm-v11-1.csv
+	: sim, pt_part, tf/idf: 1, 5
+	: score: 0.593 @ 300, 12
+
+svm-v11-2.csv
+	: sim, pt_part, num_1wm_t, mean_1wm_t, min_pair_dist_t, min_coverage_t, tf/idf: 1, 5, 8, 10, 23
+	:: set params to 200, 300 & 10, 12, 15 (since they're most frequently chosen)... 
+		though worried 15 may overfit
+	score: 0.559 @ 200, 10
+
+svm-v11-3.csv
+	: sim, pt_part, num_1wm_t, mean_1wm_t, min_pair_dist_t, min_coverage_t, tf/idf: 1, 5, 8, 10, 23
+	:: set params to 200, 300 & 10, 12 (per note in v11-2.csv) ("just in case")
+	:  score: 0.556 @ 200, 10 
+
+svm-v11-4.csv
+	: sim, pt_part, tf/idf: 1, 5
+	:: set params to 200, 300 & 10, 12 (per note in v11-2.csv) ("just in case")
+	: score: 0.592 @ 300, 12
+
+
+avg-rank4.csv
+	--> combined _v7_b8, v8-4, v8-9, v8-10, v8-11 + v11-1, v11-2, v11-3
+	--> heh: improved by .2%  to :: 0.60646  (lol)
+
+
+
+
+walmart keys:
+c66f44qp3dmahughdx9rfd5n == 500 left for today  (launchtaffy) -- GOOD 
+d7rf2yhcrfm46xq8ep8farvq == 0 left for today (messels) -- GOOD
+np28qfbqzd9e32kgqdnjwc9h == 0 left for today (power9pro) -- h3elloworld
+v69hx34abnububq37p894u3c == 0 left for today (tbdlabs1) -- GOOD
+t97aprd4kfyrabuy2zrxtyvp === 2000 left for today (paidpertask) -- h3elloworld 
+32jjrhgapbb4wdwj5ngybc44  == 5000  left (jandcgroup) -- h3elloworld
+
+REMAINING:
+cf_test_setc --> test_query_setc-1  √
+cf_test_setd --> test_query_setd-1  √
+cf_test_sete --> test_query_sete-1  √
+
+cf_train_seta --> train_pt_paths_seta-1  √
+cf_train_setb --> train_pt_paths_setb-1  √
+cf_train_setc --> train_pt_paths_setc-1  √
+
+cf_test_seta --> test_pt_paths_seta-1 √
+cf_test_setb --> test_pt_paths_setb-1 √
+cf_test_setc --> test_pt_paths_setc-1 √
+cf_test_setd --> test_pt_paths_setd-1 √
+cf_test_sete --> test_pt_paths_sete-1 √
+
+
+---- "RETRY / FIX" list ---
+:: if NOT here, then the file is okay or only has a handful to "hand code"
+
+* train_query_cats_seta-1: starting at Q-ID 15895 (through finish)
+	cf_train_seta-fix_queries.csv --> train_q_seta-2_fix1.csv
+
+* test_query_setc-1.csv :: starting @ 20787 (to end)
+	cf_test_setc-fix_queries.csv --> test_q_setc-fix1.csv
+
+
+
+V12 - uses categories
+	-> for this version we did a quick BOOLEAN: it's either the EXACT same category or it's NOT
+	-> also note that we reviewed the 36+/- TypeA and TypeB anomalies
+		:: FOR TYPE A ANOMALIES :: ISSUE :: thesaurus stuff. Category matches will PROBABLY solve problem...
+		:: may need to use a thesaurus though... 
+		:: FOR V12, it may make sense to simply remove these from the TRAINING set, knowing the problem will persist for TEST but at least the training will be cleaner... hmmm
+	:: LOTS of fails in the test sets for PTs. --> maybe i want to take a look at similarities between query and categories? 
+		--> either way, look into what these failures are... :(
+:: CURRENT PLAN :: if pt or query == 0, then it STAYS 0. If they match, then == 1; if they DO NOT MATCH, then == -1
+	--> had a quick issue w/ how i coded anamolies for v12 (failed for test) so I REMOVED the feature in v12
+	--> can evaluate using it again in the future by accepting that there will NO anamolies in the test set
+		--> IMO that results in it being a useless feature since there'd be none in the test evaluation to pick up on it...
+
+
+
+
+OUTPUT ORDER STUFF: 
+ID[0], sim[1],'query_ln'[2], 'min_coverage_d'[3], 'mean_2wm_d'[4], 'pt_part'[5], 'mean_1wm_d'[6], 'num_multi_mtch_d'[7], 'min_coverage_t'[8], 'mean_2wm_t'[9], 'mean_1wm_t'[10], 'num_multi_mtch_t'[11], 'num_sw_mtch_d'[12], 'min_coverage_a'[13], 'score_var': [14], 'act_cat_exact'[15], 'num_sw_mtch_t'[16], 'min_pair_dist_a'[17], 'parent_cat_exact'[18], 'multi_wm_t'[19], 'min_pair_dist_d': [20], 'num_dw_mtch_t'[21], 'multi_wm_d'[22], 'min_pair_dist_t'[23], 'num_dw_mtch_d'[24], 'mean_multi_t'[25], 'pd_exact'[26], 'two_wm_d'[27], 'mean_multi_d'[28], 'pd_part'[29], 'pt_exact'[30], 'two_wm_t'[31]
+
+
+svm-v12-1.csv
+	- sim, act_cat_exact, parent_cat_exact + TF/IDF: 1, 15, 18
+	- score: 0.580 @ 300, 12
+
+svm-v12-2.csv
+	- sim, pt_part, act_cat_exact, parent_cat_exact + TF/IDF: 1, 5, 15, 18
+	- score: 0.592 @ 300, 12
+
+nn-v12-1:
+	- sim, act_cat_exact, parent_cat_exact + TF/IDF: 1, 15, 18
+	- network: 10, 100
+	--> interestingly, the epoch output is much lower than i remember seeing before (.06s vs IIRC 3.xxx)... hmm
+	--> BUT it's only outputting (as before) 4s and 1s... wtf!? hahah. perhaps aptly pointing out that something is either relevant or it's not. lol
+
+nn-v12-1:
+	- sim, pt_part, act_cat_exact, parent_cat_exact + TF/IDF: 1, 5, 15, 18
+	- network: 10, 100
+	- very similar to nn-v12-1 EXCEPT there are MORE 1s and SOME 2s (but again no 3s)... 
+
+svm-v12-3.csv
+	- sim, means (all title), min_coverage, min_pair_dist_t,  pt_part, act_cat_exact, parent_cat_exact + TF/IDF: 1, 5, 8,9, 10 15, 18, 19, 23,25
+	= score: 0.580 @ 300, 10
+
+	--> what about pt_exact???
+
+svm-v12-4.csv
+	- sim, means (all title), min_coverage, min_pair_dist_t,  pt_part / exact, act_cat_exact, parent_cat_exact + TF/IDF: 1, 5, 8,9, 10 15, 18, 19, 23,25, 30
+	-  score: 0.572 @ 200, 10
+
+
+svm-v12-5.csv
+	- sim,  pt_part / exact, act_cat_exact, parent_cat_exact + TF/IDF: 1, 5, 15, 18, 30
+	- score: 0.601 @ 300, 10
+
+svm-v12-6.csv
+	- pt_part / exact, act_cat_exact, parent_cat_exact + TF/IDF: 5, 15, 18, 30
+	- score: 0.603 @ 300, 10
+
+svm-v12-7.csv
+	- pt_part, act_cat_exact, parent_cat_exact + TF/IDF: 5, 15, 18
+	- score: 0.595 @ 300, 12
+
+svm-v12-8.csv
+	- act_cat_exact, parent_cat_exact + TF/IDF: 15, 18
+	- score: 0.582 @ 300, 12
+
+logit-v12-1.csv
+	- pt_part, act_cat_exact, parent_cat_exact: 5,15, 18
+	- score() == 0.625615278598
+
+logit-v12-2.csv
+	- sim, pt_part, act_cat_exact, parent_cat_exact: 1, 5,15, 18
+	- score() == 0.625615278598
+	- only 1's and 4's (though mostly 4s)
+
+- vote_1.csv 
+	score: .58xx (so not great)
+	- used the vote script ont he same as avg_4.csv
+
+- avg_rank5.csv
+	- just the svm_v12's (for first one)
+
+- avg_rank6.csv
+	- svm_v12-2, 5, 6, 7 
+
+- avg_rank7.csv
+	- uses all from the original "votes" folder (see avg_rank4.csv) + the 4 from avg_rank6.csv
+	--> combined _v7_b8, v8-4, v8-9, v8-10, v8-11 + v11-1, v11-2, v11-3 ++ 	- svm_v12-2, 5, 6, 7 
+
+
+<<<<<<< HEAD
+- vote_3.csv  --> scored 58.9xx
+svm-v7-b4.csv
+svm-v7-b5.csv
+svm-v7-b8.csv
+svm-v8-9.csv
+svm-v8-9_b.csv
+svm-v8-11.csv
+svm-v8-14.csv
+svm-v9-3.csv
+svm-v11-1.csv
+svm-v11-4.csv
+svm-v12-2.csv
+svm-v12-3.csv
+svm-v12-5.csv
+svm-v12-6.csv
+svm-v12-7.csv
+
+
+V13 
+	-> train uses cf_train2.2 and 2.2_b (fixes for missing full path on query in train2 and 2_b)
+:: 
+ - sim of paths
+ - sim of query to last path
+ - sim of query to full path
+ - (?) sim of parent to parent, sim of act to act
+
+--> "sim" is now "q_pt_sim"
+
+ID[0], q_pt_sim[1], path_sim[2], query_pt_cat_sim[3], query_full_path_sim[4], 'query_ln'[5], 'min_coverage_d'[6], 'mean_2wm_d'[7], 'pt_part'[8], 'mean_1wm_d'[9], 'num_multi_mtch_d'[10], 'min_coverage_t'[11], 'mean_2wm_t'[12], 'mean_1wm_t'[13], 'num_multi_mtch_t'[14], 'num_sw_mtch_d'[15], 'min_coverage_a'[16], 'score_var': [17], 'act_cat_exact'[18], 'num_sw_mtch_t'[19], 'min_pair_dist_a'[20], 'parent_cat_exact'[21], 'multi_wm_t'[22], 'min_pair_dist_d': [23], 'num_dw_mtch_t'[24], 'multi_wm_d'[25], 'min_pair_dist_t'[26], 'num_dw_mtch_d'[27], 'mean_multi_t'[28], 'pd_exact'[29], 'two_wm_d'[30], 'mean_multi_d'[31], 'pd_part'[32], 'pt_exact'[33], 'two_wm_t'[34]
+
+1,3,4,7,8,9,11,12,13,26,28,31,33
+
+svm-v13-1.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, tf/idf: 1, 3, 4,8
+	- score: .591 @ 300,12
+
+svm-v13-2.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, min_coverage_t, min_pair_dist_t, tf/idf: 1, 3, 4,8, 11, 26
+	- score: 0.532 @ 200, 10
+
+svm-v13-3.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, min_coverage_t, parent_cat_exact, act_cat_exact, min_pair_dist_t, tf/idf: 1, 3, 4,8, 11, 18, 21, 26
+	- score: 0.539 @ 200, 10
+
+svm-v13-4.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, parent_cat_exact, act_cat_exact, min_pair_dist_t, tf/idf: 1, 3, 4,8, 18, 21, 26
+	- score: 0.544 @ 200, 10
+
+svm-v13-5.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, parent_cat_exact, act_cat_exact: 1, 3, 4,8, 18, 21
+	--> NO TF/IDF
+	--> pred fit says .62... 
+
+svm-v13-6.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, parent_cat_exact, act_cat_exact, tf/idf: 1, 3, 4,8, 18, 21
+	- score: 0.593 @ 300, 10
+		--> accidentally over-wrote and re-ran and the score was slightly different 0.592
+svm-v13-7.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, parent_cat_exact, act_cat_exact, min_pair_dist_t:
+	 1, 3, 4,8, 18, 21, 26
+	--> NO TF/IDF
+	--> pred fit says 0.63221106517
+	--> SUMBITED THIS AND IT WAS ONLY A .26276 MATCH!!! OUTCH!!! 
+
+svm-v13-8.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, min_coverage_t, parent_cat_exact, act_cat_exact, min_pair_dist_t: 
+	1, 3, 4,8, 11, 18, 21, 26
+	--> NO TF/IDF
+	--> pred fit: 0.63772396141	
+
+nn-v13-1.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, min_coverage_t, parent_cat_exact, act_cat_exact, min_pair_dist_t: 
+	1, 3, 4,8, 11, 18, 21, 26
+	- NN: 20, 200
+
+nn-v13-2.csv
+	- q_pt_sim, query_pt_cat_sim, query_full_path_sim, pt_part, parent_cat_exact, act_cat_exact, min_pair_dist_t: 
+	1, 3, 4,8, 18, 21, 26
+	- NN: 20, 200
+
+svm-v13-9.csv
+	- q_pt_sim, path_sim, query_pt_cat_sim, query_full_path_sim, pt_part, tf/idf: 1,2, 3, 4,8
+	-  score: 0.595 @ 300, 10
+
+svm-v2-6-rep1.csv:
+	boolean features && mean match features :: 7, 8, 9, 12,13,28,29,31,32,33
+	-> just to see if the predicted score is really not to be trusted...
+	-> oops. ran this w/ the TF/IDF 
+	: score: 0.601 @ 200, 10
+
+svm-v2-6-rep2.csv:
+	boolean features && mean match features :: 7, 8, 9, 12,13,28,29,31,32,33
+	- pred score :0.625418389447
+	--> so this score is not likely to be trusted. sigh. 
+
+avg-rank8.csv
+	- all v13 (except the repro's above)
+
+svm-v13-10.csv
+	- pt_part/exact, q_pt_sim, query_pt_cat_sim, query_full_path_sim, tf/idf:  1, 3, 4,8, 33
+	score: 0.586 @ 300, 12
+
+avg-rank9.csv
+	svm-v7-b8, v8-9.csv, v9-3.csv, -v11-1.csv, -v12-2.csv, -v12-5.csv, -v12-6.csv, v13-1.csv, -v13-6.csv, -v13-10.csv
+
+
+
+avg-rank10.csv
+	(from 9) svm-v7-b8, v8-9.csv, v9-3.csv, -v11-1.csv, -v12-2.csv, -v12-5.csv, -v12-6.csv, v13-1.csv, -v13-6.csv, -v13-10.csv
+	(from avg-rank7.csv) --> combined _v7_b8, v8-4, v8-9, v8-10, v8-11 + v11-1, v11-2, v11-3 ++ 	- svm_v12-2, 5, 6, 7 	
+
+
+
+=======
+>>>>>>> master
+:: evaluate a NN with a LOT more features. suspect that svm is failing on catching nuances of features... (biase?)
+-- for V13, write TF/IDF into the feature set (so it doesn't need to be calculated on the fly...)
+	--> how would that affect the SVM? 
+
+svm-v13-11.csv
+	q_pt_sim[1], query_pt_cat_sim[3], query_full_path_sim[4],pt_part[8] 'min_coverage_t'[11], 'mean_2wm_t'[12], 'mean_1wm_t'[13], 'multi_wm_t'[22], 'min_pair_dist_t'[26], 'pt_exact'[33]
+	score: 0.567 @ 200, 10
+	--> WAS MISSING PT_PART
+
+svm-v13-12.csv
+	q_pt_sim[1], query_pt_cat_sim[3], query_full_path_sim[4],pt_part[8] 'min_coverage_t'[11], 'mean_2wm_t'[12], 'mean_1wm_t'[13], 'multi_wm_t'[22], 'min_pair_dist_t'[26], 'pt_exact'[33]
+	 score: 0.582 @ 200, 10
+
+svm-v13-13.csv
+	q_pt_sim[1], query_pt_cat_sim[3], query_full_path_sim[4],pt_part[8] 'min_coverage_t'[11], 'min_pair_dist_t'[26], 'pt_exact'[33]
+	 0.540 @ 200, 10
+
+svm-v13-14.csv
+	- similarities, title bools, title means (fix from errors above), TF/IDF: 1,3,4,7,8,9,11,12,13,26,28,31,33
+	score: 0.571 @ 200,10
+
+-- STUFF I USED FOR V10 (OBSOLETE)
+RATING == 3 AND NO PT NO PD
+11449
+11985
+12597
+12661
+1306
+13161
+14217
+14443
+14578
+14798
+14930
+14977
+1637
+16582
+17027
+18491
+18940
+19655
+200
+20104
+21140
+21386
+21526
+22368
+23228
+23382
+23604
+24117
+24348  --> NOTE CONSISTENTLY FALLING ON FACE FOR HARLEYDAVIDSON  --> spiderman seems like a big culprit too... and 'three wheeled bike)
+24739
+25260
+25605
+26371
+28170
+29350
+29705
+3001
+30256
+30606
+30665
+30799
+31
+31267
+32549
+3526
+4491
+4636
+5077
+5368
+5521
+647
+6891
+7084
+8591
+9423
+9478
+
+---- 
+RATING = 4 AND NO PT, NO PD
+10038
+1035
+10779
+11981
+12558
+12609
+13148
+13283
+14009
+14125
+14373
+14463
+14701
+15931
+16196
+16513
+16941
+17196
+17406
+17672
+17848
+18304
+18630
+18910
+19237
+19981
+20958
+21321
+21383
+21532
+21562
+21937
+230
+23050
+23942
+24272
+2554
+26010
+2616
+26317
+26843
+26859
+26941
+2731
+27373
+27749
+2821
+29030
+29068
+29108
+29735
+30223
+30374  --> NOBODY KNOWS HOW TO SPELL REFRIGERATOR
+31305
+31317
+3194
+32440
+3294
+3494
+4186
+4217
+4328
+4472
+4554
+4829
+5413
+5527
+7130
+7154
+7809
+7814
+9659
+
+RATING == 1 OR 2 BUT PT_EXACT == 1
+10201
+10420
+1078
+10931
+11439
+11758
+11974
+1250
+12621
+12727
+14100
+16757
+19070
+2092
+20960
+20971
+21542
+23088
+24112
+24228
+25120
+2861
+29369
+29858
+31645
+3532
+3650
+4896
+5160
+5217
+5721   
+6637
+7427
+9460
+9645
+<<<<<<< HEAD
+=======
+
+
+GENERALIZATION
+503a67433465895d4af9289a1160ded9d7f6db18
+
+V.1
+4da3bb3a0255634952b442a638d1ebfb6f0a35d3
+
+v.earlier
+2bf6995fa5fbac072ec4731a7bf946690e78d01a
+>>>>>>> master

@@ -1,0 +1,1310 @@
+a low frequency feature known as the local motor potential (LMP) has been found to be informative in decoding kinematic parameters of arm-related movements...and Flint et al indeed reported that the LMP and the 0–4 Hz band were the most informative features for LFP-based BMI control
+
+
+A Kalman filter (KF) decoding algorithm (‘decoder’) was used to implement closed-loop BMI control. The KF assumes the following models for how the kinematic state of the cursor (xt) evolves over time and how the observed vector of extracted LFP features (yt) relates to the state:
+
+xt = Axt−1 + wt (1)
+
+yt = Cxt + qt (2)
+
+where wt ∼ N (0,W ) and qt ∼ N (0, Q) are additive Gaussian noise terms. At each iteration, the KF estimates xt using yt and its previous estimate of xt−1 (see [16] for the actual filter equations that perform the state estimation at each iteration).
+
+We used a position-velocity KF, in which the KF state vector xt is defined to include the position (p) and velocity (v) of the cursor at time t, along both the horizontal and vertical directions of the screen:
+xt = [phorizontal,t pvertical,t vhorizontal,t vvertical,t 1]Transpose
+
+
+
+Pt quickly converges to a steady-state matrix P that depends only the model parameters (A,W,C,Q).
+
+
+
+−−→ −−→ −→ vcursor =α·vassist +(1−α)·vuser3−→ −−→where vuser is the decoded output from the KF, vassist is a vector −−→that points directly toward the current target, and vcursor is a weighted average of the two that determines the final cursor output shown to the subject. The weighted average was set by the assist level α ∈ [0, 1], which was manually adjusted in real-time depending on the subject’s performance (at α = 0, the cursor was fully controlled by the subject). 
+
+
+The SmoothBatch CLDA algorithm has been previously used in spike-based BMI experiments, where it was demonstrated to rapidly improve BMI performance independent of the decoder’s initialization method [26]. Furthermore, SmoothBatch has also been shown to possess a variety of favorable algorithmic convergence properties [14].
+
+SmoothBatch first collects a batch of neural activity and cursor kinematics as the subject operates the BMI cursor in closed-loop control using a decoder with these parameters. Next, the algorithmgenerates an estimate of the user’s intended cursor movements. For example, in our experiments, we used Gilja et al’s method for inferring intended cursor kinematics (‘innovation 1’ of the ReFIT-KF algorithm), which assumes that the subject always intends to move to directly toward the current target [17]. Other methods for estimating intended movements could also be used in conjunction with SmoothBatch, such as Shpigelman et al’s supervised method [21] or Li et al’s unsupervised method [24]. Using the estimate of intended cursor kinematics and the recorded neural activity, SmoothBatch then constructs batch maximum likelihood estimates, Cˆ and Qˆ, of the C and Q matrices using the following equations:Cˆ = YX.T (XX.T )^−1 (3) 
+Qˆ= 1/N(Y−CX)(Y−CX).T (4)where the Y and X matrices are formed by tiling N columns ofrecorded neural activity and intended kinematics, respectively. The size of the data batch is parametrized by the batch period Tb 􏰀 N · dt (where dt is the time between decoder iterations). Finally, the algorithm updates the observation model parameters using a weighted average:C(i)=(1−ρ)Cˆ(i)+ρC(i−1) (5) 
+Q(i) = (1 − ρ)Qˆ(i) + ρQ(i−1) (6)where i indexes discrete batch periods and the weighting parameter ρ ∈ [0, 1] controls the influence of Cˆ and Qˆ on the new parameter settings. Note that SmoothBatch does not update the KF transition model parameters A and W. We typically reparametrize ρ in terms of a half-life h (i.e., the time it takes for a previous maximum likelihood estimate’s weight in the decoder to be reduced by a factor of 2):ρh/Tb =1 /2
+
+
+To perform approximate comparisons of BMI cursor control performance across studies (see section 4), we calculated a summary statistic using the Fitts Law derived index of difficulty, which has been proposed as a standardized assessment method for neural prostheses [28]. The index of difficulty, measured in bits, is calculated based on the distance to target (‘Distance’) and target diameter (‘Window’) as:Index of difficulty = log2 * ( ( Distance + Window) / Window)From this value and the mean RT, we calculate throughput in Fitts bits s−1 as:Throughput = Index of difficulty / Mean reach timekmeans1: 
+ - six base classes 
+ - max 300 iterations
+ - 49% accuracy 
+
+kmeans2:
+ - seven base classes
+ - removal of the 7th 
+ - used pred_shell[predictions - 1] = 1
+ - almost the exact same score
+
+kemans3:
+ - seven base classes
+ - removal of the 7th
+ - max iterations == 500
+ - pred_shell[predictions] = 1 
+ - passes on predictions == 6 (suspecting that was a bug)
+ -  need to investigate if i'm returning the correct values
+ - it says it returns the "index" of the cluster but is that a zero-based index??? 
+
+
+nn-v1-1.csv
+ - 6 classes --> commented out the 7th class stuff
+ - commented out all of the k-means section (should really move that to it's own methods)
+ - NN: 4 layers: 1 input -> hidden1 -> hidden2 -> output
+ - 10 epochs (to get a quick feedback because it was going to take about 3 hours to complete the 20 epochs
+	-> relu -> sigmoid -> sigmoid -> out
+	-> uses stochastic gradient descent ("sgd")
+- unclear if it had found local minimum
+	-> going to run for more epochs
+	-> could consider making softmax as the final output 
+		(but still call predict_prob)
+- submitted:  0.64440
+
+nn-v1-2.csv
+ - 6 classes
+ - NN: 4 layers: 1 input -> hidden1 -> hidden2 -> output
+ - 30 epochs
+	model.add(Dense(input_dim=X_train.shape[1], output_dim=128, init="glorot_uniform"))
+	model.add(Activation("relu"))
+	model.add(Dense(input_dim=128, output_dim=64, init="glorot_uniform"))
+	model.add(Activation("sigmoid"))
+	model.add(Dense(input_dim=64, output_dim=num_classifications, init="glorot_uniform"))
+	model.add(Activation("sigmoid"))
+- looks like it might have converged at epoch 16...
+	: SCORE: (07.18.15) @ .62xx)
+
+nn-v2-1.csv
+ - addition of 7th class ("no aciton") - removed at csv save
+ - also changed to softmax on the output layer 
+ --> and then get the prob
+ - epochs @ 15
+	model.add(Dense(input_dim=X_train.shape[1], output_dim=64, init="glorot_uniform"))
+	model.add(Activation("relu"))
+	model.add(Dense(input_dim=64, output_dim=32, init="glorot_uniform"))
+	model.add(Activation("sigmoid"))
+	model.add(Dense(input_dim=32, output_dim=num_classifications, init="glorot_uniform"))
+	model.add(Activation("sigmoid"))
+	- score: 0.63902
+
+
+avg-rank1.csv
+	- grasp-sub-simple.csv, kmeans1, kmeans3, nn-v1-2, nn-v2-1.csv
+	- failed. issue w/ script (only adding one col). will need to use a numpy modification to get the right values for the different classes
+
+nn-v2-2.csv
+	-- APPEARS I DID NOT HAVE SOFTMAX ENABED IN THE V2-1 ABOVE
+ 	-- FIXED TO HAVE SOFTMAX
+	-- ALSO SUBSAMPLING DATA @ 66 (66 * 1.5 = APROX 100ms)
+ - addition of 7th class ("no aciton") - removed at csv save
+ - also changed to softmax on the output layer 
+ --> and then get the prob
+ - epochs @ 15
+	model.add(Dense(input_dim=X_train.shape[1], output_dim=64, init="glorot_uniform"))
+	model.add(Activation("relu"))
+	model.add(Dense(input_dim=64, output_dim=32, init="glorot_uniform"))
+	model.add(Activation("sigmoid"))
+	model.add(Dense(input_dim=32, output_dim=num_classifications, init="glorot_uniform"))
+	model.add(Activation("sigmoid"))
+	- score: 0.63902
+
+
+logit-v2-1.csv
+	- ran the simple benchmark example but with a lower sub-sample (66 instead of 100)
+	- will look into modifying this so that there's the 7th class (that simply dropped) ... really feel like that needs to be included...
+
+
+* seeing the scores floating the 60s/70s, going to use the KMEANS cluster predictions (scoring at .49) as an additional set of inputs to the network
+ - could also just have those as the inputs to the cluster... 
+
+--------- DATA RESET ----------
+logit-v3-1.csv
+	- uses benchmark code w/ 66 subsample instead of 100
+	- Submitted SCORE: 0.71601
+
+kmeans-v3-1.csv --> NOT RUN
+	- re-running
+	- uses 7 classifications
+	- next up will be 6 classifications
+
+nn-v3-1.csv
+	- subsample @ 66
+	- network: 64 -> 32 -> 7  (writes only 6)
+	- 15 epochs; batch size == 16, validiation_split = 0.15
+	- relue -> sigmoid -> softmax
+	:: loss: 0.6876 - val_loss: 0.7007
+	** note with sub-sampling the run time is RIDICULOUSLY fasters
+	-- doing a quick search on files, there's no prediction greater than .1
+	-- the logit has .1's - .7s 
+	--> need to see what happens if i add in the 7th class to the logit version
+	--> IIUC, the logit version is also on a per subject basis. 
+		:: maybe do that for the nn??
+	:: submission scored 0.63802
+
+
+nn-v4-1.csv
+	- taking best score method of training each subject separately
+	- network: 64 -> 32 -> 7  (writes only 6)
+	- 15 epochs; batch size == 16, validiation_split = 0.15
+	- relue -> sigmoid -> softmax
+	subsample = 66 # to reduce data size
+	->> note: started running W/O subsample and would take about 3 hours (if needed)
+	--> runs MUCH faster BUT i think the fit is a lot worse 
+	--> may be worth running another version with a smaller subset (like 33)
+	:: loss is like .1x vs .2x ...  (will do it before bed. heh)
+	:: NOTE :: ALSO INCLUDES SCALING --> maybe use for your aggregate version
+
+
+nn-v4-2.csv
+	- taking best score method of training each subject separately
+	- network: 64 -> 32 -> 7  (writes only 6)
+	- 15 epochs; batch size == 16, validiation_split = 0.15
+	- relue -> sigmoid -> softmax
+	- NO SUBSAMPLE
+	- could be the real deal. lots of .7x's ...essentially lots of variability
+	:: submission scored 0.63378  :(
+
+
+nn-v4-3-test.csv
+	- test version of nn-v4-3.csv (below)
+	- just did one subject 
+	- was struggling to drop the 7th class. waste of freaking time. got it working now
+
+nn-v4-3.csv
+	- same as v4-1 (subsample @ 66)
+	- BUT added in 7th class --> just as POC
+	- will run full dataset tonight. :: ACTUALLY GOING TO DO THE K-MEANS
+	:: based on run-time loss output, i'm not sure it's converging at 15 epochs...
+	:: NOTE THIS WAS ACTUALLY ONLY ONE EPOCH --> nn-v4-4.csv will have 15 epochs
+
+nn-v4-4.csv
+	- FIX FOR V4-3.csv --> 15 epochs
+	:: note subsample @ 66 (still)
+
+
+nn-v5-1-test.csv
+	- same as nn-v5-1.csv (below)
+	- but only ran on ONE subject and ONE EPOCH
+	- cluster assignment is only 5 epochs too
+
+nn-v5-1.csv
+	- same NN structure but with a k-means pipeline
+	- assigns k-means on a subsample, hstacks to the features
+	- then runs it through the NN 
+	- subsample @ 66
+
+
+nn-v5-2.csv
+	- same as nn-v5-1.csv but subsmaple =5 (cannot do 0)
+	- SHIT: noticed mistake in cluster-assignment: 5 max iterations!!
+
+nn-v5-3.csv
+	- mbk(n_clusters=7, max_iter = 500, max_no_improvement = 15)        
+	- network: 64 -> 32 -> 7  (writes only 6)
+	- 15 epochs; batch size == 16, validiation_split = 0.15
+	- relue -> sigmoid -> softmax
+	- subsmaple =5 
+	:: SCORE: 0.67676
+
+
+logit-v4-1.csv
+- there's a new logit script up that i'm running now
+- looks like it does four predictions and then just does an avg ensemble right there
+        lr1.fit(X_train[::subsample,:],y_train[::subsample])
+        lr2.fit(X_train[::subsample,:],y_train[::subsample])
+        lr3.fit(X_train[::subsample2,:],y_train[::subsample2])
+        lr4.fit(X_train[::subsample2,:],y_train[::subsample2])
+        pred1[:,i] = lr1.predict_proba(X_test)[:,1]
+        pred2[:,i] = lr2.predict_proba(X_test)[:,1]
+        pred3[:,i] = lr3.predict_proba(X_test)[:,1]
+        pred4[:,i] = lr4.predict_proba(X_test)[:,1]
+        pred[:,i]=(pred1[:,i]+pred2[:,i]+pred3[:,i]+pred4[:,i])/4
+	:: SCORE:  0.83749
+
+nn-v5-4.csv
+	- mbk(n_clusters=7, max_iter = 500, max_no_improvement = 15) 
+	- NN -> epochs @ 50 (vs 15)
+	- subsample @ 66 (vs previous 5 for nn-v5-3.csv
+	--> LOOKS LIKE after 50 epochs it had still not converged. 
+		will need to experiment more in that area. could be a problem with previous NN runs
+	--> run time is significantly longer... like 30 min, even with the large subsample... 
+
+nn-v5-5.csv
+	- SIX CLUSTERS @ 500 --> was thinking i set it up to do 1000 (in v5-4) but that doesn't seem to be the case... 
+	- NN still at 50 epochs 
+	- run time losses are a lot lower (.15 vs .45) 
+	- subsample @ 66
+	- output has the sterotypical "30% chance this and 30% that" for the same line. really makes me think that the 7th class is super important
+	-> going to run one v5-6-test.csv that keeps the 7th class so i can see what hte predicted value of those is. 
+	-> also i think i can run this for more epochs. it doesn't seem to be converged yet... 
+
+nn-v5-6-test.csv
+	- 7 clusters and 7 class predictions but keeping them (not dropping the 7th)
+	- NOTE: just one subject to see how it does (and then can top-line compare faster)
+	-> based on output, the "no action" does seem to capture a lot of the predictions. there are a lot of .9s through .5s
+	-> the .2x and .1x's do correlate with .2 and .3s in other classifications BUT they aren't confident predictions... 
+
+nn-v5-7.csv (there is no "pure v5-6", just a "v5-6-test")
+	- going to shoot for 75 epochs --> will do just one subject to see if it converges (as a test) and then will do 
+		-> (per above) nn-v5-7-test1.csv is the output of just one subject @ 75 epochs
+	--> test1 failed on save but still had not converged. test2 is at 100 epochs
+	: NOTE 7th class is not retained (i.e. back to normal submission mode)
+	: not definitive convergence at 100 epochs but diff was .0003 from 99th and 100th epoch
+
+logit-v4-2.csv
+	- saw while looking through the script there was a "QDA" class but it wasn't being used. 
+	- suspect obfuscation of a better model so i switched one of the repeated LDAs (line 135) to see what changing it does
+	- likely there's another obfuscation in there since there are four, it implies there were four models being averaged... 
+
+logit-v4-3.csv
+	- not sure about the QDA results. prediction values were really high...
+	- added in 7th class (but dropped for final submission file of course)
+	- obviously don't know what hte score is (w/o out submission) but 7th class has a very slight downward pressure on predicted class (.003+/-)
+
+nn-v5-8.csv
+	- mbk(n_clusters=7, max_iter = 500, max_no_improvement = 15)        
+	- network: 64 -> 32 -> 7  (writes only 6)
+	- 75 epochs; batch size == 16, validiation_split = 0.15
+	- relue -> sigmoid -> softmax
+	- subsmaple =5 
+	:: v5-8-test1.csv is just subject 1 (to see if convergence is okay when it uses such a small subsample)
+	 -> looks to be a better representation of convergence than the 15. heh. running full v5-8.csv now
+	 -> based on a review of the test file, this should be an "interesting submission" . scores are pretty different... 
+	:: SCORE IS .60xx   :(
+		-> suspecting that kmeans clustering is either NOT run long enough or it's simply a distractor to the classifier
+		-> need to re-run the NN with the butterworth filter, without the k-means, at both a 6-class and a 7-class
+
+nn-v6-1.csv
+	- 7 clusters --> NO OTHER FEATURES JUST THE CLUSTER
+	- network: 64 -> 32 -> 7  (writes only 6)
+	- 30 epochs; batch size == 16, validiation_split = 0.15
+	- relue -> sigmoid -> softmax
+	- subsmaple = 50 (for speed but also to not lose all accuracy i *perceive*)
+		--> based on a test with subsample @ 15, it appears to converge at 30 epochs. going to increase subsample to 50 (so it gets done quickly)
+
+
+logit-v5-1.csv
+	- another example script up. uses different subsamples and (again) the butterworth filter. 
+	- going to look into that and apply to NN 
+	 :: --> LDA @ .24 + LR @ .24 + LDA @ .58
+	:: 0.83920
+
+logit-v5-2.csv
+	- noticing that the trend to obfuscate the code is to change one of the QDAs back to a (repeated) LDA
+	- changed that back to (what i assume) a QDA (qudratic discriminator) and then re-running
+		 :: --> LDA @ .24 + LR @ .24 + QDA @ .58
+	:: 0.79325
+
+logit-v5-2.csv
+	:: --> QDA @ .24 + LR @ .24 + LDA @ .58 
+	:: score @ .81525
+	 ** see now, it's not using QDA at all. 
+		it's simply doing a LR and LDA at subsample 1 and and then a second (heavily weighted) LDA w/ subsample 2
+
+nn-v7-1.csv
+	- introduction of butterworth (a frequency band filter...)
+	- 7 clusters to NN 
+	- network: 64 -> 32 -> 7  (writes only 6)
+	- 30 epochs; batch size == 16, validiation_split = 0.15
+	- relue -> sigmoid -> softmax
+	- subsmaple = 66 (for speed but also to not lose all accuracy i *perceive*)
+
+nn-v7-2.csv
+	- same as v7-1 BUT NO CLUSTERING
+	- ie. 7 classifications, 6 written to file
+	SUBMIT THIS ONE
+		 scored 0.79082
+
+nn-v8-1.csv
+	- same as v7-2 (no clustering, 7 classes, introduction of butterworth filter)
+	- ALSO has two sets of sampling: @ 66 and @ 130, then ensembled (.6 to 66 and .4 to 130)
+	- --> v8-1-test.csv is just the first subject to make sure it works
+	SUBMIT THIS ONE
+		scored 0.79538
+
+logit-v6-1.csv  :::  FAILED 
+	- introduction of SVM (and complete removal of logistic regression)
+	- 2x LDA + 2x SVM: .18 * LDA[subsample1] + .18*svm1[subsample1] + .32* SVM & LDA[subsample2]
+	- subsample remains at 70 and 130
+	- see file: logit-ex3.py
+	- see v6-1-test* for test file(s)
+	--> as suspected, the SVM predicts a single class so it's going to provide something more akin to an index
+	--> i.e. what i have coded produces a bunch of zeros so it's just averaging down the LDA predicted values.
+	--> will refactor (time permitted) and have the index value set to 1 and then have that averaged out
+
+
+nn-v9-1.csv
+	- change of model to be "left brain only"
+	The Left-Brain Model:
+	Fp1, F7, F3, FC5, T7, C3, TP9, CP5, CP1, P7, P3, O1  (( COL GUIDE BELOW ))
+	0, 3, 4,7, 11, 12,16,17,18,22,23,28
+	- otherwise, same NN settings (and dual-subsampling) as v8-1.csv
+		--> v9-test-1.csv is one subject 
+	:: looks like it converges around epoch 25 (starts bouncing around a lot)
+	:: note that you have to create a new model for the NN because the X dimensions train (if you do an ensemble of the two)
+
+Fp1 (0),	Fp2 (1)	F7(2)	F3(3)	Fz(4)	F4(5)	F8(6)	FC5(7)	FC1(8)	FC2(9)	FC6(10)	T7(11)	C3(12)	Cz(13)	C4(14)	T8(15)	TP9(16)	CP5(17)	CP1(18)	CP2(19)	CP6(20)	TP10(21)	P7(22)	P3(23)	Pz(24)	P4(25)	P8(26)	PO9(27)	O1(28)	Oz(29)	O2(30)	PO10(31)
+
+nn-v9-2.csv
+	- the "C3" model --> just a single input on C3
+	- see v9-2-test1.csv
+	-->NOTE: ONLY 25 EPOCHS
+	:: LOL predictions were all .025 or .022 depending on the field. useless. going to investigate ICA
+
+
+logit-v7-1.csv  (uses example-4.py)
+	- attempt to use ICA (independent component analysis)
+	:: v7-1-test1.csv is just one subject
+		:: test file appears to have almost exactly 1/2 the predictive value as the non ICA version
+	:; v7-1-test2.csv USES PCA (for comparison purposes)
+		:: test file again does about 1/2 the predictive value as the non-PCA version (logit-v5-1.csv)
+
+nn-v8-2.csv
+	- swapping the weighting of the predictions toward the 66-subsample, rather than 130 
+	--> v8-2-test1.csv is one subject
+	-- the predictions are slightly higher (more confident) but they're lower than the logit ones
+	-- next up is an attempt at ensembling the two models 
+
+
+nn-v10-1.csv
+	- going to try an ensemble of the 3 logit/LDA and the nn-v8-2.csv setup
+	: test file is nn-v10-1-test1.csv and is one subject
+		--> still has predictions in the 70s but does (as expected) moderate some of the non-predicted values
+	:: ALSO NOTE THAT I BELIEVE THE 50 EPOCHS IS NOT CONVERGING. 
+		WILL RUN A STANDALONE VERSION AND UP EPOCHS TO 70 TO SEE HOW IT PERFORMS (TOMORROW)
+	:  0.83854
+
+
+nn-v8-3-test1.csv  (@ 80 epochs) --> predicted probabilities were really close to the ensemble nn-v10-1.csv (above)
+	- per notes above, want to see if we get convergence at a higher epoch rate
+	- will likely tweak until i see convergence and then run a full 12 subjects to get a score
+		-> 70 didn't appear to converge, trying 80 now 
+
+
+nn-v8-3-test2.csv
+	- breaking with versioning a bit, doing a NN with only SIX classes (but at 80 epochs)
+	- want to see if i should ensemble a 6-class an a 7-class
+	... hmm, not sure what lead me to believe the scores were better with a 7th class
+	-> has fairly similar predictions as logit-v5-1
+	--> going to make a new nn version and ensemble the 6-class with the 7-class
+	--> will then explore ensembling the two with the LDA ensembles
+
+nn-v8-3.csv
+	- this is a full 12 subject run on nn-v8-3.csv: 80 epochs, two subsamples and 6-classes only
+	:: submission scored 0.77714
+
+nn-v11-1.csv
+	-> 1 subject @ 80 epochs
+	-> two subsamples (66 and 130)
+	-> one 6-class (preds_a), one 7-class (preds_b)
+	-> ensembled: preds_final = (preds_a_final + preds_b_final) / 2
+	:: submission scored 0.78985
+
+
+nn-v10-2.csv (@80 epochs)
+	-> disabled LDA ensembling
+	-> changed NN dimensions to input 26 + one hidden layer (rather than two) :: (in + out)*2/3
+	::     model.add(Dense(input_dim=X_train.shape[1], output_dim=26, init="glorot_uniform"))
+   		model.add(Activation("relu"))
+ 	       model.add(Dense(input_dim=26, output_dim=y_train.shape[1], init="glorot_uniform"))
+	       model.add(Activation("softmax"))
+	:: epochs at 50
+	:: test:: nn-v10-2-test1.csv (one subject) (50 epochs)
+	:: -2-test2.csv @ 100 epochs
+	:: two subsamples: 66 (preds) & 130 (preds2): preds_final = (preds * .67) + (preds2 * .33)
+	-- based on tests, looks like convergence happens between 70 and 100 epochs so setting to 80
+	-- hmm, wondering if i just completely removed my hidden layer
+	-- going to do nn-v10-3.csv with a 10 unit hidden layer... 
+	submission scored 0.78257
+
+nn-v10-3.csv (@80 epochs)
+	- per note above, thinking i removed hidden layer so added a 10 unit hidden layer
+	- test: v10-3-test1.csv @ 1 subject
+
+nn-v10-4.csv @70 epochs (80 seemed to bounce around for a few of them...)
+	- ensemble of v10-3 and LDA/LR from v10-1
+	- will do a v10-5 that removes the hidden layer (even though i think that's "wrong")
+	submission scored 0.83423
+	
+seem stuck at .83xx -> going to try kmeans again but on a subject by subject basis (that never happened)
+
+kmeans-v2-1.csv
+	- test-1.csv is one subject
+	- includes butterworth stuff
+	- currently a pipeline of ICA/PCA into clustering
+	- note this is an ensmble of three different versions: 
+		1: sub-samp 66 with ICA @ .33
+		2: sub-samp 66 with PCA @ .33
+		3: sub-samp 130 with ICA @ .52
+	- other ensemble options include "votes"
+	submission score: 0.49649
+
+kmeans-lda-v1.csv
+	- using the 3rd clustering model (pred3)
+	- ensembling with two LDAs: 66 (pred1) & 130 (pred2)
+	- pred_final=pred1*0.26+pred2*0.48+pred3*0.26
+	- v1-test1.csv :: 1 subject  (just skipped it. want to submit and it's getting late)
+	:: scored at .77xx
+
+worth investigating:
+from sklearn.ensemble import RandomForestClassifier
+    rf = RandomForestClassifier(n_estimators=200, n_jobs=-1, criterion="entropy", random_state=1)
+        rf.fit(X_train[::downsample,:], y[::downsample,i])
+
+submitted a forked random forest + LDA script
+	- score: 0.84194
+
+rnd-lda-v1.csv
+	- ensemble of 2x LDA and 1x rnd-forest -- no NN or logit
+	- pred_lr =pred1(LDA@66)*0.24 + pred2(rnd-forest@66)*0.30 + pred3(LDA@130)*0.46
+	- 0.83839
+	- the 84.194 was using a butterworth at 250, rather than 500 so going to try that next
+
+rnd-lda-v1-2.csv --> did not run, see below
+	- same as above but with butter @ 250 rather than 500 
+	- v1-2-test1.csv is one subject
+	- the results were just a few points below the v1 so skipping for now
+
+rnd-lda-v2-1.csv
+	- test: one sbjct :: the positive classifiers are greater (significantly).
+		 running full 12 subjects and submitting
+	- uses FOUR classifiers: 2x LDA & rand for subsamples 66 and 130. 66@.17 and 130@.33 (for both)
+		0.82502
+
+rnd-lda-v3-1.csv
+	- no test
+	- uses 2x NN (@ 66 and 130) and then same for LDA and Random Forest
+	- these are ensembled strictly as an average of all six models 
+	- scored 0.82246
+
+rnd-lda-v3-2.csv  --> didn't run
+	- removal of NN
+	- two forms of the rnd forest: one at 150 and one at 300 (but both using 66)
+	- v3-2-test1.csv is one subject
+
+rnd-lda-v4-1.csv
+	- 3 subsamples (1: 66, 2: 130, 3: 40)
+	- 4 preds: 
+	        pred1[:,i] = lr1.predict_proba(X_test)[:,1] (@66)
+	        pred2[:,i] = rf.predict_proba(X_test)[:,1] (@40)
+       	 pred3[:,i] = lr2.predict_proba(X_test)[:,1] (@130)
+	        pred4[:,i] = lr3.predict_proba(X_test)[:,1] (@40)
+	-v4-1-test1.csv : one subject
+	:: score was .82754
+	--> noticed bug: was using a logistic regression. going to try again w/ three LDA and one RF
+
+rnd-lda-v4-2.csv 
+	- just runs w/ LDA and RF
+	- break down is as follows
+		 pred1[:,i] = lr1.predict_proba(X_test)[:,1] (@66) :: LDA
+	        pred2[:,i] = rf.predict_proba(X_test)[:,1] (@40)   :: RF
+       	 pred3[:,i] = lr2.predict_proba(X_test)[:,1] (@130)  :: LDA
+	        pred4[:,i] = lr3.predict_proba(X_test)[:,1] (@40)   :: LDA
+	0.82666
+
+rnd-lda-v4-3.csv 
+	- submitting "to the script" (or so i hope) what the higher scores are doing
+	- LDA, LR, RF -- all at 40 and all equal weight ( x/3)
+	- 0.82713,
+
+** don't forget to try a (fast)ICA on the random forest model
+	- maybe consider doing one as an ICA and then ensemble that with a non-ICA (?)
+
+okay, so aaron basically said i was doing it slightly wrong
+ * need to get mean behavior for 100ms bins (not samples every 100ms)
+ The basic slice syntax is i:j:k where i is the starting index, j is the stopping index, and k is the step
+
+rnd-lda-v5-1.csv
+	- this is a binning, per aaron's suggestion (@ 66)
+	- code is written so that i could do two (or more) binnings and create different models based on that
+	- v5-1-test1.csv is one subject (suspect a bug)
+	- found bug w/ summation of y-vals. 
+	needed to set the argmax after summation to be the value of 1 and the rest to zero
+	- all checks out a lot better now. running full data set and will submit
+	- scored 0.81126
+
+some of the events are categroized as two (or three) event types
+ - that seems wrong to me. likely an error from the recording of the data (observation error)
+ - proposed solution is to check if the argmax(index) == argmax(index+1), then if they are, to see if the eventBin - 1 for that same index == 1. if it is, then to assume the argmax should be index+1 (since numpy returns only the first instance of the argmax)
+
+
+rnd-lda-v5-2.csv
+	- attempts to address the issue raised above
+	- -v5-2-test1.csv was one subject and contained a bug (ignore)
+	- v5-2-test2.csv also had a potential bug. re-running again
+	- scored 0.81370
+
+nn-v11-1.csv
+	-v11-1-test1.csv is one subject
+	- 6 classes only
+	- NN sturcture: input (52) -> 35 in, 35 out -> 35 in, 6 out @ 30 epochs 
+	- change from categorical_crossentropy to mean_squared_error
+	- two networks: first is binned, second is data sample (@66): .75 (bin) + .25 (sample)
+	-- based on test1, i felt it needs the 7th class 
+
+nn-v11-2.csv
+	- test1.csv is one subject
+	- same structure as outlined in v11-1.csv
+	- actually, this made things even more ambiguous
+	- changing it back to categoricial_crossentropy
+	- also changing input to hidden layer to relu
+
+
+nn-v11-3.csv
+	- reflects changes noted in v11-2.csv
+	- 3-test1.csv is 1 subject (uses "relu" as input for hidden)
+	- note that i have turned on the validation accuracy : val_acc: 0.8113
+	- 3-test2.csv is 1 subject (uses "sigmoid" as input for hidden): val score higher for sample but lower for bin
+	- 3-test3.csv is 1 subject (uses "relu" as input for hidden) + 70 epochs
+		- validation score was lower so going to do less epochs. seems to overshoot. 
+		val_acc: 0.8039
+
+nn-v11-4.csv
+	- two models to compare butterworth at 250 and at 500
+	- also doing the aggregation step prior to butterworthing
+	- test file had an error when running but the val_socres were in the 70s so switch butterworthing to be again after the binning
+	FUK IT. TOO MANY BUGS
+	- JUST TESTING THE GOD DAMN 500!!! HAHAHA. 
+	 val_acc: 0.8061 (bin) @ 500  vs val_acc: 0.7974 @ 250 ...is that because it's only 30 epochs? 
+	- test3 is @ 750 (vs 250 and 500): val_acc: 0.8036
+		- will also try more epochs: 
+
+nn-v11-5.csv
+	- test1 is w/ 30 dim vs 35 and at 50 epochs
+		val_acc: 0.8150 (bin) & val_acc: 0.8172 (sample)
+
+nn-v11-6.csv
+	- test1 is w/ one subject. re-running so i can see the validation score 
+	- stopped mid-run: - val_acc: 0.4077 (no sense in finishing it)
+	- just from curiousity, changed output from softmax to sigmoid to see what diff is 
+	- again in the 46 to 50 range
+	- now w/ 7 classes (and sigmoid as output):: val_acc: 0.8141 (bin) & val_acc: 0.8107 (sample)
+
+nn-v11-7.csv
+	- trying out : tanh (note: cahnged output back to softmax)
+	- test1 is one subject: .8045 (bin) --> sample was worse. going to put back and try a larger sample
+	- test2 (if test1 is good) will be to change the sample size...maybe something bigger like 100? 
+		-> worse
+	- test3: smaller (40) --> will next consider "undoing" what i did WRT to the "multi-classifications"
+		:: 0.8159 (bin) & 0.8067 (sample)
+	- test4: samller (25) :: val_acc: 0.8118 (bin)  & val_acc: 0.8096 (sample)
+	__ based on above, I'm going to kill the second NN and use the logit stuff 
+
+nn-lda-v2-1.csv  (pending full run)
+	- combination of NN w/ rf-lda
+	- also changed NN to 32 units (vs 30) and 35 epochs
+	- all four are given equal weight (+ + + + / 4)
+	- test1 is one subject
+	-- NOTE: NN was run at a bin of 25 and the LDA/RF/LOGIT @ teh subsample 40
+	:: 0.82734
+
+rnd-lda-v6-1.csv
+	- uses the binning to run the lda/rf/logit and @ 66 (vs 40 subsample for all other runs)
+
+nn-rfc-v1-1.csv
+	- just nn and rf
+
+nn-v11-8.csv
+	- jsut a test to see how changing the NN structure affects validation score
+	- changed batch size to 100 (from 16) and validation split to .25 (vs .15)
+	:: val_acc: 0.8307 --> seeing that makes me want to do the full thing and increase the epoch count to 75. 
+	:: epochs @ 75, all 12 subjects run :: 
+	--> the validation scores all seem to be in the .84xx. maybe need to experiment with batch size more... 
+	--> it's at least worth doing an ensemble with it...
+	:: had a score to submit: scored 0.76276
+		--> suspect high-biase. likely due to my "multi-class fixing" 
+		--> will reassess tomorrow but need to get the frequency stuff aaron was talking about in here!
+
+** for TOMORROW ::
+- make it so that an event can have multiple layers, just make them all one's
+	-- hsould all be in place. just needs to be run. 
+
+nn-v12-1.csv
+	- implementation of multi-class acceptance (i.e. a single bin can be multiple classes)
+	- implemetnation of frequencies (rather than raw EEG)
+	- for test1.csv:  val_acc: 0.8012 (bin)  subsample3 (40)
+		--> seems to have only a minor change, epoch levels don't seem to matter...
+	- for test2.csv: turned off scaling (just to see) --> al_acc: 0.8097 (bin)   subsample3 (40)
+		--> output was ALL zeros.  wtf. 
+	- test3.csv: subsample (66) - scaling back on --> passes scaler (rather than recalculating) val_acc: 0.7849
+	- test4.csv:  no binning, subsample3, passes scaler: val_acc: 0.8382
+	- test5.csv: same as test4 but change batch size to 66 : val_acc: 0.8322
+		--> when running both test 4 & 5, the epochs don't seem to change the score much... 
+	- test6.csv: same as test5 but change lr (loss rate) to .3  : val_acc: 0.8331
+	- test7.csv: same as test5&6 execpt dropped lr to .033 and change of batch size to 50: val_acc: 0.8317
+	- test8.cscv: same as test7 but no 7th class: val_acc: 0.4565
+
+nn-v12-2.csv
+	- changed so that i have two different transformations: train1 (frequency) & train2 (butterworth)
+	- changed structure so that dimensions are .6 * X_train1 (or 2, as relevant) 
+	- changed epochs to 50, changed batch size to 50
+	- final file is equal weight to pred1 (frequency) and pred2 (butterworth)
+	- test1 is just a single subject --> consider putting lr back to .1..
+		- pred1: val_acc: 0.8399 - pred2: val_acc: 0.8370
+	- test2: change to subsample4 (25)
+		- pred1: val_acc: 0.8253  - pred2: val_acc: 0.8323
+	- test3 is same as test2 but with LR back to .1
+		- pred1:  val_acc: 0.8394 (didn't change ONCE through entire run) - pred2:  val_acc: 0.8377 (fluctuation)
+
+** ACTUALLY ALL OF THOSE NOTES ARE SUSPECT SINCE I HAD BEEN "FITTING" ON UNTRANSFORMED DATA!!! FUCK ME
+
+nn-rfc-v2-1.csv
+	- per note re: FUBAR, might have gotten lucky
+		- pred1: val_acc: 0.8389 (still very close to above) pred2: val_acc: 0.8342
+	- ensembles the nn-v12-2-test3 (both of them) plus the 3 LR/RF/LDA 
+	- uses subsample4 (25)
+		:: predictions_final = pred1*.19 + pred2*.24 + pred3*.19 + nn_pred1 *.19 + nn_pred2 *.19
+	- small typo during test1 caused it to fail, since the NN seems almost the same as before, just running with full model
+	:: submission scored 0.65473,
+
+rfc-lda-v6-1.csv
+	- removal of NN 
+	- may test is more data (sampled at 25, rather than 40)
+
+rfc-lda-v6-2.csv
+	- same as v6-1 but w/: 
+	- hstack of frequency and butter
+	- also realized that weights for nn-rfc-v2-1 weren't quite what i was shooting for
+	-  predictions_final = pred1*.4 + pred2*.3 + pred3*.3
+
+ :: these weightings are scoring slightly better than yours:
+	(rf.predict_proba(X_test)[:,1]*0.3 + 
+       lda.predict_proba(X_test)[:,1]*0.4 + 
+       lr.predict_proba(X_test)[:,1]*0.3)
+
+nn-v13-1.csv
+	- thinking all vs one was not quite working right	
+	- changed NN to be within the same loop that LDA/etc were within
+	- removed 7th class (fuck it)
+	- changed output to be a single output (as i was taught)
+	- also changed output to sigmoid
+	- epochs changed to 20 because first run at test ahd a bug but the fit was 1.0 w/ now variation (seems strange)
+		--> actually test 1 is just two epochs because i was having trouble with a numpy array bug
+		:: output is 0.476 for ALL of firstDigit but 0 for ALL other fields. wtf? 
+	- trying to hunt down bug (above)
+	- test2: back to softmax, print out of a few of the y_vals to see what's going on there...
+		- first issue was the use of a "1" where an "i" belonged
+		- predicted '1' for all values. sigh.
+	- test3. changed input of fit to be y_train[::subsample3, i] (rather than what appears to be a flat array from lr_y_train)
+		- also changed two layer's activations to be sigmoids
+		- outputs were the same for each column -- .46 for first digit, .55 for both touch, etc
+	- test4. change prdict_prob to predict --> effectively the same resutls from test3
+	ABANDONING
+nn-rfc-v3-1.csv
+	- going to mess with NN a bit
+	- test1 changes output layer to one output dim --> FAILS. has to be an output for each classification
+		-- only 6 classes
+		- at two epochs it's only a .22 fit
+		- goign to up to 100 to see what happens.
+
+nn-v13-3-test1.csv	
+	- focusing on NN
+	- per above, 100 epochs
+	- two NN, one for butterworth and one for frequency
+		- had an early exit() and it converged at 30 and over shot 
+		- then changed it to sigmoid as output	
+		- first iteration was a .77 but then it steadily dropped
+		- going to try sigmoid as activiation and output 
+			:: fit was really bad. (.25). output was all .5's and .4s
+
+nn-v14-1.csv
+	- using lasagne for the naive net posted on forum
+	- changed (per comments) to larger sample size
+	- max epochs = 100
+	- sample size = 5000
+	- dense = 1024  (from 256)
+	- 0.90747
+
+nn-v14-2.csv
+	- tweaking naive NN
+	 LF(Conv1DLayer, num_filters=12, filter_size=1), --> from 4
+        # new convolution layer by me:
+        LF(Conv1DLayer, num_filters=8, filter_size=1),
+	: downsample from 8 to 10  -> performance is about 25s at 10 and 15s at 20. 
+		--> downsample may need to be a number that divides cleanly into the sample_size 
+		--> example 5000 / 15 = 333.333xx which (even when using an int() wrapper) the system didn't like it) 
+	: scored .9065x
+	
+nn-v14-3.csv
+	- put downsample back to 8 
+	- changed convolution to be 12 and 4
+		--> 36% (or so) of the original 32 and then 33% of 12
+	- added a dropout layer between each (based on tutorial) (network below)
+	- introduced a theano custom momentum and learning rate 
+		: learning starts big for early epochs and gets smaller as it progresses
+		: momentum starts smaller and gets bigger for later epochs
+	 LF(InputLayer, shape=(None, N_ELECTRODES, TIME_POINTS)), 
+        LF(DropoutLayer, p=0.5),
+        LF(Conv1DLayer, num_filters=12, filter_size=1),
+        # new to hadd dropout
+        LF(DropoutLayer, p=0.1),
+        # new convolution layer by me:
+        LF(Conv1DLayer, num_filters=4, filter_size=1),
+        # new dropout
+        LF(DropoutLayer, p=0.3),
+        # Standard fully connected net from now on
+        LF(DenseLayer, num_units=dense),
+        LF(DropoutLayer, p=0.4),
+        LF(DenseLayer, num_units=dense),
+        LF(DropoutLayer, p=0.5),
+        LF(DenseLayer, layer_name="output", num_units=N_EVENTS, nonlinearity=sigmoid)
+
+	scored 0.90375  sigh
+
+:: needed :: 
+	- learn how to create the fucking plots so you can see if your converging at 100 epochs or not! 
+	- explore data transformation (like butterworth) since there's no real data transformation happening
+	- consider changing the valid_series from [1,2] to something like [3,5] or [4,6]
+
+
+nn-v14-4.csv
+	- as a quick before bed test (will do a speicalist setup tomorrow when i have time for study / coding)
+	- changed the first convolution layer to be 6 instead of 12
+	- removed the first dropoff layer (was only a p=.1, not sure how effective it really was)
+	- changed last layer from 1024 ("dense") to be dense / 2 (i.e. 512)
+		--> i think the double-back dense network was causing overfitting
+		--> if run 1 is done when i'm out of the shower and it looks shit, then i'll kill it. 
+		--> subject one was really low so i suspect it's a no-go. 
+
+nn-v14-5.csv
+	- might be more of an experiment
+	- changed dense to 256 (1024 / 4)
+	- changed first convolution to 6, second to 10
+	- increased droppout from first dense layer to .5 (from .4)
+	- removed droppout from last dense layer
+	- interestingly: the run time is down to 16 (expected) but the bias ratio seems to be better 
+		--> really high before...at least initially. worth watching
+		--> (per below) suspected that overfitting was slightly addressed int his model	
+		--> while it cut out perhaps too early (due to early stopping) the validation score was very indicative of the final submission score
+		--> lots of .85x and the KAGGLE SUBMISSION SCORE:  0.84258,
+		--> subject 2 is still a big problem...
+
+* noticed (and forgot) that around nn-v14-2, i had changed the learning rate from .02 to .03
+	-> going to change back to .01
+	-> suspecting steps might be too large and so it's creating some extra bias that is throwing off models
+
+nn-v14-6.csv
+	- change of second convolution layer to 8 filters
+	- increase of first dropoutlayer to .2 (from .1)
+		--> first two to address what still appears to be overfitting in model
+	- increase of max epoch to 300
+	- increase of early stopping from 20 to 40 (because affected EIGHT of first 9 subjects!)
+	--> seems like it wasn't going anywhere. some of the scores were hitting pretty high 90s but many were not
+		-> suspect early stopping is unjustified at this point
+		-> also probably need to up dense network back to 1024 
+
+nn-v14-7.csv
+	- change of network structure
+		- three convolution layers: 4 (w/ .1), 8 (w/ .2), 16 (w/ .3)
+		- dense back to 1024
+	- base momentum back (or still at) .9 and base learn rating back to .03 (from .01)
+	- implementation of pickle and of plot (but not sure where plot is called)
+	- keeping early stopping even though it's unclear it's helping right now (other than to arrive at a bad answer!)
+		--> upped to 75
+	- test1: 
+		- uses subject 2 (most troublesome)
+		- EXCLUDES the first series (say it gives bad readings because the participant is just learning)
+		- increases TRAIN_SIZE from 5 x 1024 to 5*2000 (targeting 10,000 samples)
+		- RUN TIME IS HORRENDOUS: 100s per epoch. yuck
+		- best epoch was epoch 2 and i had to wait a LONG time to find that out (75 * 95s!)
+		- got the score at .51 BUT i'll bet that's just a random score because of the way the sampling works. 
+
+nn-v14-8.csv
+	- test is just subject 2 & 3
+	- attempting to do butterworth on this ---> buggy as FUCK. abandoning
+	- re-enabled first droppout layer (right behind input) at p=.5 (as present before)
+	- changed train_size to 5*300 because it was KILLING me to wait so long
+		--> PROBABLY the first dropout layer but the overfitting problem of subject 2 seems to be gone
+	- early stopped at epoch 1 (!) (see note for tweaking early stop)
+
+nn-v14-9.csv
+	- added in safety valve for early stopping...has to be > epoch 10
+	- SAMPLE_SIZE = 3200 
+	- TRAIN_SIZE = 5 * 1024 (from 5*300, where it was only 15sec per epoch)
+	- no exclusion of train_series 
+		--> but i can see that tim h. had done something similar; worth experimenting more with...
+	- cross-validation sets are now 2 & 6 (rather than 1,2) 
+		--> potentially cahnged around v14-5 but notes don't indicate (unfortunately)
+	- early stopping now set to 50, rather than 75. 
+	- i think it's just too much at 75 --> the net runs at 30s per epoch now
+	SCORE: 0.90720 --> so at least overfitting is addressed...? 
+		=> estimated score: 0.8959131549
+
+nn-v15-1.csv (tests)
+	- first tried to create the butterworth filter stuff within the keras
+	- but was breaking the computer on a memory level
+	- SO i have since converted over the naive-nn to use the butterworth
+	- -v15-1-test1.csv is jsut subject 2
+	- NN:   --> NOTE: N_ELECTRODES = 52 because of butterworth
+        LF(InputLayer, shape=(None, N_ELECTRODES, TIME_POINTS)), 
+        LF(DropoutLayer, p=0.5),
+        LF(Conv1DLayer, num_filters=4, filter_size=1),
+        # new to hadd dropout
+        LF(DropoutLayer, p=0.1),
+        # new convolution layer by me:
+        LF(Conv1DLayer, num_filters=8, filter_size=1),
+        # new dropout
+        LF(DropoutLayer, p=0.2),
+        # new convolution w/ dropout
+        LF(Conv1DLayer, num_filters=16, filter_size=1),
+        # new dropout
+        LF(DropoutLayer, p=0.3),
+        # Standard fully connected net from now on
+        LF(DenseLayer, num_units=dense),
+        LF(DropoutLayer, p=0.5),
+        LF(DenseLayer, num_units=dense),
+        #LF(DropoutLayer, p=0.5),
+        LF(DenseLayer, layer_name="output", num_units=N_EVENTS, nonlinearity=sigmoid)
+	:: test1: ('Score:', 0.6687870397913187) @ epoch 218 (early stop)
+
+	:: test2: going to remove the first layer's dropout -- i don't understand why it's there in the first place. 
+ 	LF(InputLayer, shape=(None, N_ELECTRODES, TIME_POINTS)), 
+        #LF(DropoutLayer, p=0.5), --> COMMENTED OUT
+        LF(Conv1DLayer, num_filters=4, filter_size=1),
+        # new to hadd dropout
+        LF(DropoutLayer, p=0.1),
+        # new convolution layer by me:
+        LF(Conv1DLayer, num_filters=8, filter_size=1),
+        # new dropout
+        LF(DropoutLayer, p=0.2),
+        # new convolution w/ dropout
+        LF(Conv1DLayer, num_filters=16, filter_size=1),
+        # new dropout
+        LF(DropoutLayer, p=0.3),
+        # Standard fully connected net from now on
+        LF(DenseLayer, num_units=dense),
+        LF(DropoutLayer, p=0.5),
+        LF(DenseLayer, num_units=dense),
+        #LF(DropoutLayer, p=0.5),
+        LF(DenseLayer, layer_name="output", num_units=N_EVENTS, nonlinearity=sigmoid)
+	: score ('Score:', 0.60343683499988554 @ epoch 69
+
+	: test3: subj's 1 & 2
+	--> even though it iwll be a repeat of test1 wrt subj2, i want to see how the caching affects performance 
+	--> AND how "seeding" the nets with the previous scores affects convergence...
+	--> NET BACK TO TEST1 SETUP
+		--> subj1: ('Score:', 0.98453043001488216) 
+		--> subj2: ('Score:', 0.68153216026359742)
+	--> seems to have converged faster for subj2 so going to run this as-is and consider other network setups after this run
+		--> estimating 12 hours to run!  sheesh. 
+	- accidentally re-ran test2 (didn't change vars) and subj1 was 97.xx and sub2 was 62.xx
+	- back at the same place for the full run and subj was again 97.xx 
+	- seems like the variance in score is what i would expect for "+/- 1%"
+
+
+nn-v16-1.csv
+	- introduction of "distance from min/max" 
+		--> value that gets the max/min signal from each col of signal
+		--> subtracts from the value, absolute value of diff
+		::  max_val[i] = X[:,i].argmax(axis=0)
+		:: abs(X - max_val)
+	- ran -test1: subj1 and subj2: 98.59% and 65.x% respectively
+
+nn-v16-2.cscv
+	- thinking i should take abs(X_max) - abs(X)
+		--> might even be better as abs( abs(X_max) - abs(X) ) 
+		--> will see how -test1.csv goes (subj1 & subj2)
+	- may need to adjust network strucutre: 
+		--> input is now 116 vs 52 before (vs 32 originally)
+		: test1: subj1 @ 98.0x :: sub2 @ 66.89
+		-> not sure the diff in score is significant
+
+nn-v16-3.csv
+	- doing abs( abs(X) - abs(X_max))
+		--> but after thinking this through, it seems wrong
+		--> values range from positive to negative
+	:: spotted bug now so killing experiment. will re-run later after fixed v16-1, v16-2 are completed 
+
+nn-v16-4.csv
+	- consider: variance of score: sum of abs(actual - mean)^2 / total_examples
+
+FUCK.
+
+all experiments were BUNK.
+	- had a small bug in code such that X_max was repeated 
+		--> did not properly calculate the distance from the min_val
+
+nn-v16-1b.csv
+	-- will be a fixed version of v16-1
+	-- will have abs(X - max_val) and abs(X - min_val)
+	:: subj1 @ 0.98607738701339398, sub2@0.68599409651511345
+	-- subj2 continues to early stop, using 10th - 15th+/- epoch
+		-- increased to 20 (for -1b-test2.csv)
+	-- v16-1b-test2:
+		- SHOULD probably version this
+		- changed NN
+		- was going to experiment with variance / covariance 
+		- but was basically crashing computer 
+		-- NEW NET: (convolution changes) 20 -> 40 -> 80
+		-- increase of sample size to 5000
+		-- increased "train" to 5*2000 (to arrive at 10,000 row samples)
+		-- SAMPLE_SIZE = 5000
+		:: suspect run time will be prohibitive 
+	-- SCRATCH THAT
+
+nn-v17-1.csv
+	- using fixed min/max distance (see v16-v1b)
+	- per note re: NN change versioned
+	- noticed that a single epoch was taking AGES
+	- NN may still be prohibitively complex will evaluate in a moment
+	- current settings:
+		- 20 -> 40 -> 80
+		- SAMPLE_SIZE = 2000 (vs 5000 per above)
+	:: EEK. was taking 4min per epoch HOWEVER, the descent was FAST 
+		-- epoch time at 280sec
+		-- @ .1 on the 5th epoch and was at .9 / 1.0 for train/val most of the way through
+
+nn-v17-2.csv
+	-- going to tweak NN again to something smaller 
+	-- will see how it goes @ 10 -> 20 -> 30 
+	== also going to change early stopping to 20 and best epoch back to 10
+	--> will see how things run before considering going back to the 50, 20
+	--> also max epoch @ 100, seeing how they're taking so long
+		-- current version is at 82 to 85s / epoch 
+	- subj1:0.98805514216338997  | subj2: 0.67242523396563159
+		= the logic gate for early stopping prevented subj2 from stopping
+
+nn-v17-3.csv
+	- going to try: 12 -> 24 -> 48
+	- early stopping at best.epoch>5 & patience at 10 (suspecting long running)
+	- subj1: 0.99310722957625119  | subj2: 0.68336269821293727
+
+nn-v17-4.csv
+	- still suspect there's something wrong with subj2
+	- going to REMOVE the first two runs and start the training with 'event3'
+	- changed the validation series (as a result) to 4, 6)
+	- it's a long-shot but i think it's worth pursuing
+
+	** results looked bad. can't tell if twas just bad bias or a "pessimistic validation set" but am going to run the full v17-3 now --> note that normal validation group is 2,6
+
+nn-v17-3.csv
+	- continued from above
+	- first run i had to kill because early stop was set from a previous test state
+	- going to set early stop to 20 (as most previous experiments)
+	- also going to put an elif into the early stop to address subj2
+	- also noticed that subj3 was performing at .89xx vs .94xx --> worrying... 
+		--> BUT may be the result of the early stop! 
+	--> had a bug that killed it	
+	--> seeing that subj3 is experiencing really bad overfitting
+		--> since it's dead now, going to re-try nn-v17-2 
+
+nn-v17-2.csv
+	- 10 -> 20 -> 40  ((did i finger fuck it and put 40...meant to put 30...))
+	- max epcoh == 200; early stopping == 50
+	:: SCORED AT 94.3%%%% (EXACTLY) --> top 10% fuck yeah!
+
+nn-v18-1.csv
+	- introduction of distance from mean (so dist_max, min & mean)
+	- total feature input is 148 now
+	- changed NN to 15 -> 25 -> 45
+	- increased drop outs by 5% for each: 15@.15, 25@.25, 45@.35 
+		--> to try and address some perceived over-fitting 
+	- changed patience to 30 (from 50)
+		->> fixing the " >" than in early stopping to somethign that actually makes sense now... heh. (>70)
+	- also increased "score" batch to 512...feel like the 256 wasn't accurate enough
+	:: TEST1: subj1, 2 & 3
+		-- killed test1; 2min/epoch -- 7 hours for just subj1
+		-- subj1: 0.98612979969814041
+		-- subj2 looked like it would never converge
+		-- still seems to have an issue with delta between train and valid
+	- max epoch didn't trigger... set to 200 but subj1 went to 216... 
+
+nn-v18-2.csv
+	- back to 10 -> 20 -> 40
+	- keeping droppout at .15 -> .25 -> .35
+	- patience remaining at 30 
+	(which is what it think overwrote the max epoch logic...)
+	- also going to REMOVE the abs() from distances... 
+		i feel like using abs() is masking some differences in frequency
+		since we're looking at positive and negative signal numbers... 
+	- probably the right choice (to remove abs()) from around mean but not from the others
+	- worse score than previously
+	sub1: 0.97978051213834394
+	sub2:  0.74795612580372983
+	subj3:  0.8624837254672757
+	- also feel like the train and validation groups aren't converging like i'd like to see
+	- going to adjust net just a little bit
+		:: 12 (@.15) -> 24 (@.3) -> 40 (@.4)
+	-- COULD be the larger validation sample size (512 vs 256 before)... 
+	:: run time is about 95 to 100 sec
+
+nn-v18-3.csv
+	: NN 	:: 12 (@.15) -> 24 (@.3) -> 40 (@.4)
+	- max epoch at 200
+	- ajdustment to logic early stop: 
+		if self.best_valid_epoch > 5: elif current_epoch > 60: (with same normal initial check for patience)
+	- alternatively... could do
+		:: 24 -> 48 -> 96 (w/ same dropouts as above...)
+		:: AND REMOVE the second dense layer (to speed things up)
+	- final answer: split the difference
+		:: 12 -> 24 -> 48 -> dense layer (@ 1024) w/ .5 droppout, and no final layer)
+		-- can do the larger version later 
+	-- early killed on sub1 BUT the convergence was looking to be about on parity for both train and valid
+		-- killed because run time was 2 min / epoch ; want to see if there's a 60s model that still works
+
+nn-v18-4.csv
+	:: NN :: 8 (@.15) -> 15 (@.3) -> 32 (@.4) --> dense @ 512 (@.5)
+	-- 200 epochs but kill switch: elif current_epoch > 50:
+	:: test1 is again subj1,2,3
+	well, fuck. had a bug (missing self. again). 
+	- just running full run. its 60s/epoch and subj1 was at 98.xx
+	: LB score - 0.93839
+
+
+
+nn-v19-1.csv
+ 	- trying to reduce memory "build ups"
+	- adjustmetn to NN:
+	--> removal of initial dropout layer after input
+	--> back to 10 -> 20 -> 40 but with p = .15, .25, .35 (respectively)
+	--> inclusion of "distance from mean" which was NOT in nn-v17-3 (high score)
+	--> ALSO changed max epoch to 75 and patience to 20
+	-- test1 is subj1, 2, 3
+	: subj1: 0.97215215778567954   
+	: subje2: 0.75965785109540018  
+	: subj3: 0.91538049152111955
+
+nn-v20-1.csv
+	- introduction (hpefully) of maxpooling
+	- also tweak of NN:
+		-> 12 (.15) -> 24 (.25) -> 48 -> (.35)
+		-> two dense layers, both at .5 (512)
+	-> maxpooling after first and last convolayer	
+	-> max epochs 75, patience = 20
+	:; killed (but may re-do) since it was running at 87s/epoch
+
+nn-v20-2.csv
+	- removal of second dense layer (for performance)
+	- also noticed that i had the maxpooling in the wrong place (fixed it)
+	- now the NN runs at 98 to 90s / epoch. uh... 
+	- looks promising: 
+	subj1: 0.976864239850605
+	subj2: 0.75786855197695724
+	subj3: 0.91841571706699665
+
+	:: NOTE: V17-2.CSV USED A DOUBLE DENSE NETWORK OF 1024
+
+nn-v20-3.csv
+	- per note above re: v17-2, have added double-dense back in (@512)
+	- expect a longer run time BUT early stopping is saving a ton of time...
+	subj1: 0.97876237497122109
+	subj2: 0.73758110034622215
+	subj3: 0.91639223336974518
+
+nn-v20-4.csv
+	- changed NN dense layers to be 54
+	- a) likely faster run time --> 70s/epoch
+	- b) more closely resemebles what i do for dense layer NNs...
+	: subj1: 0.95877311913228114
+	: subj2: 0.72306595676587837
+	: subj3: 0.9207515911756764
+
+nn-v20-5.csv
+	- removal of early stopping 
+	- otherwise same as v20-4
+	subj1: 0.97542145250825008
+	subj2: 0.74286462424718513
+	subj3: 0.88786191940730463
+
+nn-v20-6.csv
+	- same as v20-5 but with train and validation sets modified
+	- want to train on 4 through 8 (range(4,9)) 
+	- validation is then 5,8
+	- want to see if this also improves subj2 (i know, i know...long shot...)
+	- also re-introduction of patience because scores in 20-4 were slightly higher
+	- set patience to 30 (just to be sure)
+	- results look promising
+		- not as great on subj1 & 3 but amazing on sub2!
+	subj1: 0.9635843860936113
+	subj2: 0.91822601984197072
+	subj3: 0.88491582218519482
+	:: kaggle score was only .88xx... 
+
+nn-v20-7.csv  --> KILLED THIS EXPERIMENT (THOUGH DESCENT WAS GOOD)
+	- NN changes:
+		- max epoch at 60
+		- patience to 15 
+		- one dense layer at 100 (with dropout)
+		- full sample set 
+
+
+nn-v20-8.csv
+	- to mimic v18-4.csv but with max pooling:
+		:: NN :: 8 (@.15) -> 15 (@.3) -> 32 (@.4) --> dense @ 512 (@.5)
+	- also going to try putting droppouts in specific places back in 
+	- max epoch @ 60 (too low??)
+	- patience at 15 (too low??)
+
+	dense = 256 #54 #512 # 1024 # larger (1024 perhaps) would be better
+    
+    layers = [
+        LF(InputLayer, shape=(None, N_ELECTRODES, TIME_POINTS)), 
+        LF(DropoutLayer, p=0.5),
+        LF(Conv1DLayer, num_filters=8, filter_size=1),
+        LF(MaxPool1DLayer, pool_size=1),
+        LF(DropoutLayer, p=0.15),
+        LF(Conv1DLayer, num_filters=16, filter_size=1),
+        LF(DropoutLayer, p=0.25),
+        LF(Conv1DLayer, num_filters=32, filter_size=1),
+        LF(MaxPool1DLayer, pool_size=1),
+        LF(DropoutLayer, p=0.35),
+        LF(DenseLayer, num_units=dense),
+        LF(DropoutLayer, p=0.5),
+        LF(DenseLayer, num_units=dense),
+        LF(DenseLayer, layer_name="output", num_units=N_EVENTS, nonlinearity=sigmoid)
+	
+	subj1: 0.97702284413292062
+	subj2: 0.73476477262808759
+	subj3: 0.89280373417389869
+
+nn-v21-1.csv
+	- introducing sq distance for min, max and "from zero"
+		- total of 244 features
+	- NN changes: 10 -> 20 -> 40; dense 122 (1/2 of feature set)
+	- REMOVAL OF IF/THEN WITHIN EARLY STOP
+	- NO OTHER CHANGES
+	- decent was okay. run time was 80s / epoch
+	- KILLED bcause i want to try it without the abs around the min/max distances
+	- so that sq represents the "non-negative value" 
+	- ALSO going to change it ot be (min - X) and (max - X) rather than other way around
+
+nn-v21-2.csv
+	- test is jsut subj2 & 3
+	- changes above: removal of abs() and swapping of X - "{val}" (for min/max AND mean)
+	- nothing fabulous but not horrible either
+
+nn-v21-3.csv
+	- going to remove the sqs and the abs() and just stick with the original three. 
+	- still suspect that abs was removing important information
+	: note if you can figure out entropy, maybe do it just on the butterworth? ... sigh
+
+
+
+*** OTHER IDEAS *** 
+√ :: 1 ::
+ - as before, get the k-means cluster for both the X_train X_test 
+	--> sample X_train (should be consistent when looping back to NN)
+ - then apply to NN was an input feature   √
+
+
+ :: 2 ::  --> NEEDS TESTING / DEBUGGING --> changed tactic and am now ensembling directly within the running script
+ - figure out how to avg multiple models --> may need to write own script 
+
+√ :: 3 :: 
+ - add the 7th class to the logit version 
+√ :: 3b ::
+ - add the 7th class to the v4 NN √
+
+ :: 4 :: 
+ experiment with alternative NN engines (ie stocastic gradient descent)
+	-> is there a "normal gradient descent"? 
+
+ :: 5 :: 
+ - mess with NN dimensions -> note that ML class only had 20 hidden units for a 400 unit input. 
+	might be "overfitting" and hence drop in score for submissions
+
+√ :: 6 :: 
+ - apply ICA or PCA to final feature set and then run through NN 
+	-> ICA / PCA reduced scores of logit runs (or the confidence scores at least) so abandoning tactic
+
+√ :: 7 :: 
+ - look into scipy.signal import butter -> used by logit-v4 but wtf is that?
+	- basically all of these:  from scipy.signal import butter, lfilter, boxcar
+	- from numpy import convolve
+ 
+√ :: 8 :: 
+ - what is QDA??  
+	 -> quadratic discrimination (vs linear discrimination) 
+
+
+eight was 165 or 330g, i.e., the earliest moment the unexpected weight could have been detected by the participant was after ~200 ms. Indeed, the EEG changed after this as exemplified for the Pz and C4 channels in power of the alpha (8–13 Hz) and beta (15–25 Hz) bands, the ERSP (event-related spectral perturbation) and the ITC (inter-trial coherence or event-related phase-locking).
+
+
+
+
+For MI,
+band power features are usually extracted in the µ (about 8−12 Hz) and β (about
+16−24 Hz) frequency bands, for electrode localized over the motor cortex areas of
+the brain (around locations C3 and C4 for right and left hand movements respectively)
+(Pfurtscheller and Neuper, 2001). Such features are then typically classified
+using a Linear Discriminant Analysis (LDA) classifier.
+
+Another very popular classifier for BCI is the Support Vector Machine (SVM)
+(Bennett and Campbell, 2000). An SVM also uses a discriminant hyperplane to
+identify classes (Burges, 1998). However, with SVM, the selected hyperplane is
+the one that maximizes the margins, i.e., the distance from the nearest training
+points, which has been found to increase the generalization capabilites (Burges,
+1998) (Bennett and Campbell, 2000)
+
+BCI would exploit the spatial information by extracting features only from EEG
+channels localized over the motor areas of the brain, typically channels C3 for right
+hand movements, Cz for foot movements and C4 for left hand movements. It would
+exploit the spectral information by focusing on frequency bands µ (8−12 Hz) and β
+(16−24 Hz). More precisely, for a BCI that can recognize left hand MI versus right
+hand MI, the basic features extracted would be the average band power in 8−12 Hz
+and 16−24 Hz from both channels C3 and C4. Therefore, the EEG signals would
+be described by only 4 features.
+
+Unfortunately, this basic design is far from being optimal. Indeed, it uses only
+two fixed channels. As such, relevant information, measured by other channels
+might be missing, and C3 and C4 may not be the best channels for the subject at
+hand. Similarly, using the fixed frequency bands 8−12 Hz and 16−24 Hz may not
+be the optimal frequency bands for the current subject. In general, much better performances
+are obtained when using subject-specific designs, with the best channels
+and frequency bands optimized for this subject. Using more than two channels is
+also known to lead to improved performances, since it enables to collect the relevant
+information spread over the various EEG sensors.
+
+
+
+
+C3 for right hand movements
+
+C3bipolar = FC3 −CP3, 
+Laplacian filter over C3 would be defined as C3Laplacian = 4C3 − FC3 −C5 −C1 −CP3
+
+Extracting features from bipolar or Laplacian spatial filters rather than
+from the single corresponding electrodes has been shown to significantly increase
+classification performances
+
+
+ Among the unsupervised spatial
+filters we can mention Principal Component Analysis (PCA), which finds the spatial
+filters that explain most of the variance of the data, or Independent Component
+Analysis (ICA), which find spatial filters whose resulting signals are independent
+from each other (Kachenoura et al, 2008).
+
+
+Inverse solutions are algorithms that enable to estimate the signals originating from sources within the brain based on the measurements taken from the scalp
+
+
+
+
+Connectivity measures: they measure how much the signal from two channels
+are correlated, synchronized or even if one signal may be the cause of the other
+one. In other words, connectivity features measure how the signal of two channels
+are related. This is particularly useful for BCI since it is known that, in
+the brain, there are many long distance communications between separated areas
+(Varela et al, 2001). As such, connectivity features are increasingly used for
+BCI and seem to be a very valuable complement to traditional features
+
+The Left-Brain Model:
+Fp1, F7, F3, FC5, T7, C3, TP9, CP5, CP1, P7, P3, O1
+
+W/ "CENTRAL REGIONS" 
+FP1, F7, F3, Fz, FC5, FC1, T7, C3, Cz, TP9, CP5, CP1, P7, P3, Pz, O1, Oz
+
+
+Examples of these
+features are average heart rate, maximum skin conductance and variance of the amplitude
+of a speech signal. More complex features inspired by signal processing methods have also
+been proposed by several authors. For instance, Giakoumis et al. (2011) proposed features
+extracted from physiological signals using Legendre and Krawtchouk polynomials while
+Yannakakis et al. (2008) used the approximate entropy (Pincus, 1991) and the parameters
+of linear, quadratic and exponential regression models fitted to a heart rate signal. Unidimensional
+discrete signals — i.e. temporal sequences of discrete labels, typically events
+such as clicking a mouse button or blinking an eye — are usually transformed with similar
+ad-hoc statistical features such as counts. The focus of this thesis is on unsupervised methods
+that can automatically derive features from the data, opposed to a fixed set of features
+that represent arbitrary characteristics of the signals.
