@@ -101,15 +101,15 @@ def initialize():
 	
 	print "training and so forth:"
 		# Initialize SVD
-	parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
-	svd = decomp.TruncatedSVD()
-	pca = decomp.PCA(parameters)
+	#parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
+	#svd = decomp.TruncatedSVD()
+	#pca = decomp.PCA(parameters)
 	"""
 	lr1 = LDA()
 	lr2= LogisticRegression()
 	rf = RandomForestClassifier(n_estimators=100, n_jobs=-1, criterion="entropy", random_state=1)
 	"""
-	svm1 = svm.SVC()
+	#svm1 = svm.SVC()
 	"""
     # Create the pipeline 
 	clf = pipe([('pca', pca),
@@ -200,11 +200,12 @@ def initialize():
 
 
 	nb_samples = X_train.shape[0]
-	nb_features = X_train.shape[1]
+	
 	newshape = (nb_samples, 1, nb_features)
 	X_train = np.reshape(X_train, newshape).astype(t_fig.floatX)
 	#y_train = y_train.astype(t_fig.floatX)
 	"""
+	nb_features = X_train.shape[1]
 	X_train = X_train.reshape(X_train.shape + (1, ));
 
 	# NEURAL NETWORK  - Convolutional    
