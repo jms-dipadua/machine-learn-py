@@ -158,7 +158,7 @@ def initialize():
 	#print raw_input("PRESS ENTER")
 	#print "predicting test values"
 	#pred3 = rf.predict_proba(X_test)
-	"""
+	
 
 	print "SVM"
 	svm1.fit(X_vals, y_vals)
@@ -168,7 +168,7 @@ def initialize():
 	#print raw_input("PRESS ENTER")
 	print "predicting test values"
 	pred4 = svm1.predict_proba(X_test)
-
+	"""
 
 	#pred_final = (pred1 + pred2 + pred3) / 3
 	"""
@@ -204,6 +204,8 @@ def initialize():
 	newshape = (nb_samples, 1, nb_features)
 	X_train = np.reshape(X_train, newshape).astype(t_fig.floatX)
 	#y_train = y_train.astype(t_fig.floatX)
+	"""
+	X_train = X_train.reshape(X_train.shape + (1, ));
 
 	# NEURAL NETWORK  - Convolutional    
 	model = Sequential()
@@ -238,7 +240,6 @@ def initialize():
 
 	nn_preds = model.predict(X_test)
 	
-	"""
 	#print nn_preds
 	#print nn_preds.shape
 	
@@ -247,7 +248,7 @@ def initialize():
     # SUBMISSION FILE
 	submission = pd.DataFrame(index=ids,
                           columns=cols,
-                          data=pred1)
+                          data=nn_preds)
 
 	submission = submission.drop(['blank'], axis = 1) # kludge. not sure what was wrong...
 
