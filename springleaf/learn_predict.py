@@ -109,7 +109,7 @@ def initialize():
 	lr2= LogisticRegression()
 	rf = RandomForestClassifier(n_estimators=100, n_jobs=-1, criterion="entropy", random_state=1)
 	"""
-	#svm1 = svm.SVC()
+	svm1 = svm.SVC()
 	"""
     # Create the pipeline 
 	clf = pipe([('pca', pca),
@@ -204,7 +204,7 @@ def initialize():
 	newshape = (nb_samples, 1, nb_features)
 	X_train = np.reshape(X_train, newshape).astype(t_fig.floatX)
 	#y_train = y_train.astype(t_fig.floatX)
-	"""
+	
 	nb_features = X_train.shape[1]
 	X_train = X_train.reshape(X_train.shape + (1, ));
 
@@ -243,7 +243,7 @@ def initialize():
 	
 	#print nn_preds
 	#print nn_preds.shape
-	
+	"""
     
 	print "creating submission file"
     # SUBMISSION FILE
