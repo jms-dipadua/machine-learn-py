@@ -54,7 +54,6 @@ def initialize():
 	print "train or test file? "
 	sum_type = int(raw_input("1 = train, 2 = test "))
 
-<<<<<<< HEAD
 	# query to product title similiarity
 	q_pt_sim = calc_similarities(sim_cos_file, 'product_title', 'query')
 	# query_full_path to pt_full_path sim
@@ -64,10 +63,8 @@ def initialize():
 	query_pt_cat_sim = calc_similarities(sim_cos_file, 'query', 'pt_actual_cat')
 	# query to full pt_path sim
 	query_full_path_sim = calc_similarities(sim_cos_file, 'query', 'pt_full_path')
-=======
 
 	query_similarities = calc_similarities(sim_cos_file)
->>>>>>> parent of 4da3bb3... starting to do v13, path sim and more. going to generalize similarity function
 	#tfidf_cosine = calc_tfidf_cosine(sim_cos_file)
 
 	query_data = get_data(file_name)
@@ -136,9 +133,6 @@ def initialize():
 
 <<<<<<< HEAD
 	file_name = write_query_summary_csv(query_stats, q_pt_sim, path_sim, query_pt_cat_sim, query_full_path_sim, s_file_name)
-=======
-	file_name = write_query_summary_csv(query_stats, query_similarities, s_file_name)
->>>>>>> parent of 4da3bb3... starting to do v13, path sim and more. going to generalize similarity function
 	if file_name:
 		print "file saved as %r" % file_name
 
@@ -513,20 +507,7 @@ def calc_similarities(file_name, field_a, field_b):
 				q_sims.append(sim_lis[i][1])
 				break
 
-<<<<<<< HEAD
 	return q_sims
-=======
-<<<<<<< HEAD
-	return similarities
-=======
-	# NEXT WE DO QUERY_CATS AND PT_CATS
-	# we'll have two similarity checks: parent and actual
-	#	...actually, we'll do similiarty checks in v.next
-	#   ... as quick POC, we'll do booleans 
-
-	return query_sim #, cat_parent_sim, cat_act_sim
->>>>>>> parent of 4da3bb3... starting to do v13, path sim and more. going to generalize similarity function
->>>>>>> master
  
 def calc_tfidf_cosine(file_name):
 	print "calculating cosine similarity"
@@ -726,11 +707,8 @@ def create_mock_score(num_queries, mu, sigma):
 	#print mock_scores
 	return mock_scores
 
-<<<<<<< HEAD
+
 def write_query_summary_csv(query_stats, q_pt_sim, path_sim, query_pt_cat_sim, query_full_path_sim, s_file_name):	
-=======
-def write_query_summary_csv(query_stats, query_similarities, s_file_name):	
->>>>>>> parent of 4da3bb3... starting to do v13, path sim and more. going to generalize similarity function
 	print "writing summary stats csv"
 	#print query_stats # for ordering of fields
 
@@ -741,19 +719,12 @@ def write_query_summary_csv(query_stats, query_similarities, s_file_name):
 		for stat in query_stats:
 			all = []
 			query_stat = query_stats.get(stat)
-<<<<<<< HEAD
 			all.append(stat) 
-=======
-			all.append(stat)
-<<<<<<< HEAD
->>>>>>> master
 			all.append(q_pt_sim[i])
 			all.append(path_sim[i])
 			all.append(query_pt_cat_sim[i])
 			all.append(query_full_path_sim[i])
-=======
 			all.append(query_similarities[i])
->>>>>>> parent of 4da3bb3... starting to do v13, path sim and more. going to generalize similarity function
 			#all.append(tfidf_cosine[i])
 			#print stat
 
