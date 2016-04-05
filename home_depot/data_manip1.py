@@ -12,14 +12,23 @@ import sys
 import numpy as np
 import pandas as pd
 
-# other utility libraries 
-from operator import itemgetter
-from collections import defaultdict  
-from BeautifulSoup import BeautifulSoup
 # TFIDF & COSINE
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics.pairwise import linear_kernel
+
+# for spell checking # PyEnchant
+import enchant 
+
+# for stemming and stopwords # PyStemmer + snowballstemmer 
+from nltk.stem.snowball import SnowballStemmer
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+
+# other utility libraries # might not use actually... 
+from operator import itemgetter
+from collections import defaultdict  
+from BeautifulSoup import BeautifulSoup
 
 
 class Transformer:
@@ -41,8 +50,11 @@ class Transformer:
 		self.raw_data = pd.read_csv(self.root_dir+self.raw_file_name)
 
 	def spell_check(self):
+		self.spll_chk = enchant.Dict("en_US")
 
 	def gen_stems(self):
+		self.stopwrds = stopwords.words('english')
+		self.stemmer = SnowballStemmer('english').stem
 
 	def write_file(self):
 
