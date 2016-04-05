@@ -131,7 +131,6 @@ def initialize():
 	print "SIGMA:   ", score_sigma
 
 
-<<<<<<< HEAD
 	file_name = write_query_summary_csv(query_stats, q_pt_sim, path_sim, query_pt_cat_sim, query_full_path_sim, s_file_name)
 	if file_name:
 		print "file saved as %r" % file_name
