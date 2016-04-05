@@ -1,0 +1,41 @@
+There are product attributes for some products. there are product descriptions for each product and can be merged on the produt_uid.
+
+perhaps a model that is ONLY trained off the product title
+
+another model that is ONLY using the description
+
+another model that uses BOTH PT and PD
+
+and then another model that uses the product attributes 
+	BECAUSE it is NOT a complete file (1-to-1), it can only train for "what's there"
+
+there is also a combined fourth model that uses them all
+
+then there are flavors of models:
+random forest
+logistic regression
+SVM
+ANN
+
+TF/IDF and cosine matrix for them all. the "distance" metric seems like it would be skewed if there are missing values though.
+
+---- PROCESS
+
+* run spell check on the data and save a "clean file"
+* run a stop-words on the data and save a "clean file"
+* conduct a root-word analysis 
+	--> how??? 
+
+
+Evaluation
+
+Submissions are evaluated on the root mean squared error (RMSE).
+
+
+Submission File
+
+For each id in the test set, you must predict a relevance. This is a real number in [1,3]. The file should contain a header and have the following format:
+id,relevance
+1,1
+4,2
+5,3
