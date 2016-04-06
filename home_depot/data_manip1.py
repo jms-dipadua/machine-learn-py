@@ -47,7 +47,7 @@ class Transformer:
 		self.fin_file = self.file_dir + self.raw_file_name + "_" + self.version_num
 
 	def read_file(self):
-		self.dataframe = pd.read_csv(self.file_dir+self.raw_file_name)
+		self.dataframe = pd.read_csv(self.file_dir+self.raw_file_name, encoding ='ISO-8859-1') # same as latin-1
 
 	def spell_check(self):
 		# going to work on this part after steming ("just cuz")
@@ -56,21 +56,21 @@ class Transformer:
 	def gen_stems(self):
 		# before steming we'll remove stop words
 		self.stopwords_main = stopwords.words('english')
+		self.stemmer = SnowballStemmer('english').stem
 		# mod stopwords a bit  # maybe later remove more measurement related words
 		#self.stopwords_alt = list('oz lbs. lbs ft ft. in. ml inch cu. cu ft. ft up cm oz. mm ounce no. of or gal. to'.split())
-		# not as surgical as it could be but "easier" for POC
+		# not as surgical as it could be but "easier" 
+		# note that we stem here as well as remove stop words
 		if not self.dataframe['product_title'].empty:
 			self.dataframe['product_title'] = self.dataframe['product_title'].str.lower().str.split()
-			self.dataframe['product_title'].apply(lambda x: [item for item in x if item not in self.stopwords_main])
+			self.dataframe['product_title'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
 		if not self.dataframe['search_term'].empty:
 			self.dataframe['search_term'] = self.dataframe['search_term'].str.lower().str.split()
-			self.dataframe['search_term'].apply(lambda x: [item for item in x if item not in self.stopwords_main])
+			self.dataframe['search_term'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
 		# other stuff worth investigating is splitting on - becauset here are things like 3-piece BUT those could be useful so...yeah... 
 		# sanity check
-		#print self.dataframe['product_title']
-
-		# then we go on to stemming
-		self.stemmer = SnowballStemmer('english').stem
+		print self.dataframe['product_title']
+		
 
 	def write_file(self):
 		return 
