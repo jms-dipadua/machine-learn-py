@@ -5,7 +5,7 @@
 # plus: we won't have to waste computation cycles (and time) by re-doing steming, etc every time we wnat to run our models
 # i.e. we can measure twice and cut once (or revisit the raw if need be)
 # input: raw data :: train and test.csv
-# output:  train_clean and test_clean.csv
+# output:  ml-ready features. current: TFIDF COSINE Sim Scores 
 ""
 # general purpose libraries
 import sys
@@ -22,7 +22,7 @@ import enchant
 
 # for stemming and stopwords # PyStemmer + snowballstemmer 
 from nltk.stem.snowball import SnowballStemmer
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize # not using ATM
 from nltk.corpus import stopwords  #  DON'T FORGET TO DOWNLOAD IT! :)  ## nltk.download("stopwords")
 
 # other utility libraries # might not use actually... 
@@ -38,6 +38,8 @@ class Transformer:
 		# self.initial_data_drop() # if applicable (place holder for future)
 		#self.spell_check()
 		self.gen_stems()
+		self.gen_tfidf()
+		self.calc_cosine_sim()
 		self.write_file()
 
 	def set_intial_params(self):
@@ -69,10 +71,35 @@ class Transformer:
 			self.dataframe['search_term'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
 		# other stuff worth investigating is splitting on - becauset here are things like 3-piece BUT those could be useful so...yeah... 
 		# sanity check
-		print self.dataframe['product_title']
+		#print self.dataframe['product_title']
+	
+	def gen_tfidf(self):
+		self.tfv = TfidfVectorizer(min_df=3,  max_features=None, 
+            strip_accents='unicode', analyzer='word',token_pattern=r'\w{1,}',
+            ngram_range=(1, 5), use_idf=1,smooth_idf=1,sublinear_tf=1)#,
+            #stop_words = 'stoplist') # can MAYBE go this route w/ the measurement list (above)
+
+		if not self.dataframe['product_title'].empty:
+			prod_title = list(dataframe['product_title'].apply(lambda x:'%s' % (x),axis=1))
+			self.tfv.fit(prod_title)
+			self.prod_title_tfidf =  self.tfv.transform(prod_title) 
+			# transpose for matrix multiplication and division
+			self.prod_title_tfidf = np.transpose(self.prod_title_tfidf)
 		
+		if not self.dataframe['search_term']:
+			prod_query = list(dataframe['search_term'].apply(lambda x:'%s' % (x),axis=1))
+			self.tfv.fit(prod_query)
+			# transpose (as above)
+			self.prod_query_tfidf =  self.tfv.transform(prod_query)
+			self.prod_query_tfidf = np.transpose(self.prod_query_tfidf)
+	
+	def calc_cosine_sim(self):
+		#pt_tfidf_T = np.transpose(prod_title_tfidf)
+		self.cosine_tfidf = cosine_similarity(prod_title_tfidf[0:1], prod_query_tfidf[0:1])
 
 	def write_file(self):
+		final_file = self.dataframe.to_csv(self.fin_file,index_label='id')
+
 		return 
 
 if __name__ == "__main__":
