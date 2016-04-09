@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from sklearn import svm
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score, mean_absolute_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split, StratifiedKFold, KFold
@@ -44,10 +45,6 @@ class LearnedPrediction():
 		#self.pre_process_data()
 		self.svm()
 		self.logit()
-
-	def pre_process_data(self):
-		# make true train and CV split
-		#self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.search_inputs.X_train, self.search_inputs.y_train, test_size=0.33, random_state=42)
 
 	def svm(self):
 		pass
