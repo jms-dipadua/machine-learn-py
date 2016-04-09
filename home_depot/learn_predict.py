@@ -32,11 +32,13 @@ class SearchInput:
 	def read_file(self):
 		# get the training data
 		X_train_test = pd.read_csv(self.file_dir + self.X_train_file)
-		self.X_train = X_train_test['cosine_tfidf']
+		self.X_train = X_train_test['cosine_tfidf'] # may have to reshape this...
+		self.X_train = pd.DataFrame(self.X_train)
 		self.y_train = X_train_test['relevance']
 		# get the testing data 
-		self.X_test = pd.read_csv(self.file_dir + self.X_test_file)
-		self.fin_df = self.X_test.drop(['id', 'cosine_tfidf'], axis=1)
+		self.X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
+		self.X_test = pd.DataFrame(self.X_test_raw['cosine_tfidf'])
+		self.fin_df = pd.DataFrame(self.X_test_raw.drop(['product_uid', 'cosine_tfidf'], axis=1))
 
 class LearnedPrediction():
 	def __init__(self):
@@ -45,9 +47,12 @@ class LearnedPrediction():
 		#self.pre_process_data()
 		self.svm()
 		self.logit()
+		self.write_file()
 
 	def svm(self):
-		pass
+		regression = svm.SVR(kernel='poly', C=100, gamma=0.1, verbose=True)
+		regress_fit = regression.fit(self.search_inputs.X_train,self.search_inputs.y_train)
+		self.svm_preds = regress_fit.predict(self.search_inputs.X_test)
 
 	def logit(self):
 		logit = LogisticRegression()
@@ -59,8 +64,9 @@ class LearnedPrediction():
 	
 	def write_file(self):
 		# for a singleton model, we just make it a dataframe and write it
-		self.fin_df['predictions'] = np.array(self.logit_preds)
-		fin_file = fin_df.to_csv(self.fin_file_name,index_label='id')
+		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
+		print self.search_inputs.fin_df.shape
+		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name, float_format='%.2f')
 
 if __name__ == "__main__":
 	predictions = LearnedPrediction() 

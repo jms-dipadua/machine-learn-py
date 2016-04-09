@@ -21,10 +21,20 @@ TF/IDF and cosine matrix for them all. the "distance" metric seems like it would
 
 ---- PROCESS
 
-* run spell check on the data and save a "clean file"
-* run a stop-words on the data and save a "clean file"
-* conduct a root-word analysis 
-	--> how??? 
+TODO  * run spell check on the data and save a "clean file"
+√  * run a stop-words on the data and save a "clean file"
+√  * conduct a root-word analysis 
+
+--- V1  :: POC 
+predictions_v1.csv
+- just a logit using a single feature (cosine from product title and search query)
+ :: results - bad. haha 173x of 183x haha
+
+
+_v1-2.csv
+- just an SVM of the same
+
+
 
 
 Evaluation

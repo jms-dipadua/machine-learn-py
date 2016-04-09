@@ -96,10 +96,10 @@ class Transformer:
 		self.dataframe['cosine_tfidf'] = self.cosine_tfidf
 
 	def data_drop(self):
-		self.dataframe = self.dataframe.drop(['id', 'product_title', 'search_term'], axis=1)
+		self.dataframe = self.dataframe.drop(['product_title', 'search_term'], axis=1)
 
 	def write_file(self):
-		final_file = self.dataframe.to_csv(self.fin_file,index_label='id')
+		final_file = self.dataframe.to_csv(self.fin_file,index=False)
 
 
 if __name__ == "__main__":
