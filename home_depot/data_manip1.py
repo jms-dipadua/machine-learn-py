@@ -47,7 +47,7 @@ class Transformer:
 		self.file_dir = "data/"
 		self.raw_file_name = raw_input("Enter File Name (no directory):   ") 
 		self.version_num = "v" + raw_input("Version Number of Transformation: ")
-		self.fin_file = self.file_dir + "train_" + self.version_num + ".csv"
+		self.fin_file = self.file_dir + self.raw_file_name + "_" + self.version_num + ".csv"
 
 	def read_file(self):
 		self.dataframe = pd.read_csv(self.file_dir+self.raw_file_name, encoding ='ISO-8859-1') # same as latin-1

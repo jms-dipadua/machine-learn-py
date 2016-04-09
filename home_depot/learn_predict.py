@@ -22,44 +22,48 @@ class SearchInput:
 	def __init__(self):
 		self.get_params()
 		self.read_file()
-		self.initial_data_drop()
-		self.split_train_target()
 
 	def get_params(self):
-		pass
+		self.file_dir = "data/"
+		self.X_train_file = raw_input("Training Data File (no dir)") 
+		self.X_test_file = raw_input("Testing Data File (no dir)") 
 
 	def read_file(self):
-		pass
-
-	def initial_data_drop(self):
-		pass
-
-	def split_train_target(self):
-		pass
+		# get the training data
+		X_train_test = pd.read_csv(self.file_dir + self.X_train_file)
+		self.X_train = X_train_test['cosine_tfidf']
+		self.y_train = X_train_test['relevance']
+		# get the testing data 
+		self.X_test = pd.read_csv(self.file_dir + self.X_test_file)
+		self.fin_df = self.X_test.drop(['id', 'cosine_tfidf'], axis=1)
 
 class LearnedPrediction():
 	def __init__(self):
 		self.search_inputs = SearchInput()
-		self.pre_process_data()
+		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number") + ".csv"
+		#self.pre_process_data()
 		self.svm()
 		self.logit()
 
 	def pre_process_data(self):
 		# make true train and CV split
-		self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.search_inputs.X_train, self.search_inputs.y_train, test_size=0.33, random_state=42)
+		#self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.search_inputs.X_train, self.search_inputs.y_train, test_size=0.33, random_state=42)
 
 	def svm(self):
 		pass
 
 	def logit(self):
 		logit = LogisticRegression()
-
+		logit.fit(self.search_inputs.X_train,self.search_inputs.y_train)
+		self.logit_preds = logit.predict(self.search_inputs.X_test)
 
 	def relevance_vote(self):
 		pass 
 	
 	def write_file(self):
-		pass
+		# for a singleton model, we just make it a dataframe and write it
+		self.fin_df['predictions'] = np.array(self.logit_preds)
+		fin_file = fin_df.to_csv(self.fin_file_name,index_label='id')
 
 if __name__ == "__main__":
 	predictions = LearnedPrediction() 
