@@ -46,7 +46,7 @@ class Transformer:
 		self.file_dir = "data/"
 		self.raw_file_name = raw_input("Enter File Name (no directory):   ") 
 		self.version_num = "v" + raw_input("Version Number of Transformation: ")
-		self.fin_file = self.file_dir + self.raw_file_name + "_" + self.version_num
+		self.fin_file = self.file_dir + self.raw_file_name + "_" + self.version_num + ".csv"
 
 	def read_file(self):
 		self.dataframe = pd.read_csv(self.file_dir+self.raw_file_name, encoding ='ISO-8859-1') # same as latin-1
@@ -80,25 +80,24 @@ class Transformer:
             #stop_words = 'stoplist') # can MAYBE go this route w/ the measurement list (above)
 
 		if not self.dataframe['product_title'].empty:
-			prod_title = list(self.dataframe['product_title'].apply(lambda x:'%s' % (x),axis=1))
-			self.tfv.fit(prod_title)
-			self.prod_title_tfidf =  self.tfv.transform(prod_title) 
-			# transpose for matrix multiplication and division
-			self.prod_title_tfidf = np.transpose(self.prod_title_tfidf)
-		
-		if not self.dataframe['search_term']:
-			prod_query = list(self.dataframe['search_term'].apply(lambda x:'%s' % (x),axis=1))
-			self.tfv.fit(prod_query)
-			# transpose (as above)
+			prod_title = list(self.dataframe.apply(lambda x:'%s' % (x['product_title']), axis=1 ))
+			self.prod_title_tfidf = self.tfv.fit_transform(prod_title)
+			#self.prod_title_tfidf =  self.tfv.transform(prod_title) 
+			
+		if not self.dataframe['search_term'].empty:
+			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_term']), axis=1 ))
 			self.prod_query_tfidf =  self.tfv.transform(prod_query)
-			self.prod_query_tfidf = np.transpose(self.prod_query_tfidf)
+			
 	
 	def calc_cosine_sim(self):
-		#pt_tfidf_T = np.transpose(prod_title_tfidf)
-		self.cosine_tfidf = cosine_similarity(self.prod_title_tfidf[0:1], self.prod_query_tfidf[0:1])
+		self.cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
+		for i in range(self.prod_query_tfidf.shape[0]):
+			self.cosine_tfidf[i]=cosine_similarity(self.prod_query_tfidf[i,:], self.prod_title_tfidf[i,:])
+		#exit()
 
 	def write_file(self):
-		fin_df = pd.DataFrame(self.dataframe['product_uid'], self.cosine_tfidf)
+		#fin_df_data = {'product_uid': self.dataframe['product_uid'], 'cosine':pd.DataFrame(np.transpose(self.cosine_tfidf)) }
+		fin_df = pd.DataFrame(np.transpose(self.cosine_tfidf))
 		final_file = fin_df.to_csv(self.fin_file,index_label='id')
 
 		return 
