@@ -35,6 +35,7 @@ class SearchInput:
 		pass
 
 	def split_train_target(self):
+		pass
 
 class LearnedPrediction():
 	def __init__(self):
@@ -51,9 +52,12 @@ class LearnedPrediction():
 		pass
 
 	def logit(self):
+		logit = LogisticRegression()
+
 
 	def relevance_vote(self):
 		pass 
+	
 	def write_file(self):
 		pass
 
