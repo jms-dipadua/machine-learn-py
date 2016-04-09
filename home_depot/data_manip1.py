@@ -80,14 +80,14 @@ class Transformer:
             #stop_words = 'stoplist') # can MAYBE go this route w/ the measurement list (above)
 
 		if not self.dataframe['product_title'].empty:
-			prod_title = list(dataframe['product_title'].apply(lambda x:'%s' % (x),axis=1))
+			prod_title = list(self.dataframe['product_title'].apply(lambda x:'%s' % (x),axis=1))
 			self.tfv.fit(prod_title)
 			self.prod_title_tfidf =  self.tfv.transform(prod_title) 
 			# transpose for matrix multiplication and division
 			self.prod_title_tfidf = np.transpose(self.prod_title_tfidf)
 		
 		if not self.dataframe['search_term']:
-			prod_query = list(dataframe['search_term'].apply(lambda x:'%s' % (x),axis=1))
+			prod_query = list(self.dataframe['search_term'].apply(lambda x:'%s' % (x),axis=1))
 			self.tfv.fit(prod_query)
 			# transpose (as above)
 			self.prod_query_tfidf =  self.tfv.transform(prod_query)
@@ -95,10 +95,11 @@ class Transformer:
 	
 	def calc_cosine_sim(self):
 		#pt_tfidf_T = np.transpose(prod_title_tfidf)
-		self.cosine_tfidf = cosine_similarity(prod_title_tfidf[0:1], prod_query_tfidf[0:1])
+		self.cosine_tfidf = cosine_similarity(self.prod_title_tfidf[0:1], self.prod_query_tfidf[0:1])
 
 	def write_file(self):
-		final_file = self.dataframe.to_csv(self.fin_file,index_label='id')
+		fin_df = pd.DataFrame(self.dataframe['product_uid'], self.cosine_tfidf)
+		final_file = fin_df.to_csv(self.fin_file,index_label='id')
 
 		return 
 
