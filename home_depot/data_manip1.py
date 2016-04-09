@@ -40,6 +40,7 @@ class Transformer:
 		self.gen_stems()
 		self.gen_tfidf()
 		self.calc_cosine_sim()
+		self.data_drop() # drop unneeded cols
 		self.write_file()
 
 	def set_intial_params(self):
@@ -88,19 +89,18 @@ class Transformer:
 			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_term']), axis=1 ))
 			self.prod_query_tfidf =  self.tfv.transform(prod_query)
 			
-	
 	def calc_cosine_sim(self):
 		self.cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
 		for i in range(self.prod_query_tfidf.shape[0]):
 			self.cosine_tfidf[i]=cosine_similarity(self.prod_query_tfidf[i,:], self.prod_title_tfidf[i,:])
-		#exit()
+		self.dataframe['cosine_tfidf'] = self.cosine_tfidf
+
+	def data_drop(self):
+		self.dataframe = self.dataframe.drop(['id', 'product_title', 'search_term'], axis=1)
 
 	def write_file(self):
-		#fin_df_data = {'product_uid': self.dataframe['product_uid'], 'cosine':pd.DataFrame(np.transpose(self.cosine_tfidf)) }
-		fin_df = pd.DataFrame(np.transpose(self.cosine_tfidf))
-		final_file = fin_df.to_csv(self.fin_file,index_label='id')
+		final_file = self.dataframe.to_csv(self.fin_file,index_label='id')
 
-		return 
 
 if __name__ == "__main__":
 	transformer = Transformer() 
