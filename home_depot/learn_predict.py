@@ -1,11 +1,6 @@
 ""
 # learn_predict.py
 # intent:  to make predictions of search relevance based on an input training set
-# why: we can isolate the pipeline by separating transformation from actual agorithmic learning
-# plus: we won't have to waste computation cycles (and time) by re-doing steming, etc every time we wnat to run our models
-# i.e. we can measure twice and cut once (or revisit the raw if need be)
-# input: raw data :: train and test.csv
-# output:  ml-ready features. current: TFIDF COSINE Sim Scores 
 ""
 # general purpose libraries
 import sys
@@ -66,7 +61,7 @@ class LearnedPrediction():
 		# for a singleton model, we just make it a dataframe and write it
 		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
 		print self.search_inputs.fin_df.shape
-		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name, float_format='%.2f')
+		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name, float_format='%.2f', index=False)
 
 if __name__ == "__main__":
 	predictions = LearnedPrediction() 
