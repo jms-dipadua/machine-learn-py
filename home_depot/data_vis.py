@@ -14,7 +14,7 @@ class Visualization:
 		get_params()
 		read_files()
 		merge_fields()
-		render_chart()
+		calc_basic_info()
 
 	def get_params(self):
 		self.root_dir = "/data"
@@ -39,4 +39,30 @@ class Visualization:
 		self.test_df_m1 = self.test_df.merge(self.prod_desc_df, how='inner', on='product_uid')
 		self.test_df_m2 = self.test_df.merge(self.attr_df, how='inner', on='product_uid')
 
+	def calc_basic_info(self):
+		# train
+		self.train_df_m1_complete_count = self.train_df_m1['attributes'].count(axis=1)
+		self.train_df_m1_length = self.train_df_m1.shape[1]
+		print "Overall completeness of attributes:  %f"  % (self.train_df_m1_complete_count / self.train_df_m1_length)
 
+		# split train by "level" of relevance
+		# r1 = relevance == 1; r2 == 2, etc
+		self.train_df_m1_r1 = self.train_df_m1[self.train_df_m1['relevance'] == 1]
+		self.train_df_m1_r2 = self.train_df_m1[self.train_df_m1['relevance'] == 2]
+		self.train_df_m1_r3 = self.train_df_m1[self.train_df_m1['relevance'] == 3]
+		# OUTPUT completeness
+		print "Relevance == 1 completeness of attributes:  %f"  % (self.train_df_m1_r1['attributes'].count(axis=1) / self.train_df_m1_r1.shape[1])
+		print "Relevance == 2 completeness of attributes:  %f"  % (self.train_df_m1_r2['attributes'].count(axis=1) / self.train_df_m1_r2.shape[1])
+		print "Relevance == 3 completeness of attributes:  %f"  % (self.train_df_m1_r3['attributes'].count(axis=1) / self.train_df_m1_r3.shape[1])
+
+		#self.train_complete_plot = plt.boxplot(data)
+
+		# test 
+		self.test_df_m1_complete_count = self.test_df_m1['attributes'].count(axis=1)
+		self.test_df_m1_length = self.test_df_m1.shape[1]
+
+	def create_charts(self):
+		#plt.show()
+
+if __name__ == "__main__":
+	visualization = Visualization() 
