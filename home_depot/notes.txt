@@ -36,6 +36,36 @@ _v1-2.csv
 
 
 
+---- v2 ::
+ * looking at the distribution of attributes, we're about 99% across the board (see below)
+ * based on this, i'm inclined to THROW OUT the training sets that DON'T have an attribute and train off that
+	-- again using the cosine distance 
+	-- since i'll be in there, just going to make the cosine distance off the product description as well
+	-- three more features could be
+		1) cosine distance from a combination of pt + pd
+		2) C-D from pt + attri
+		3) C-D from pt + pd + attri
+		:: combining the attribute with the pt or pd gives the advantage of having a complete data set
+	-- LAST, i'm going to get a "keyword count" for:
+		a) keyword match: pt
+		b) keyword match: pd
+		c) keyword match: attri
+	-- UBER LAST: get the damn spell check going! 
+
+
+TRAIN STUFF
+Overall completeness of attributes:  0.999215
+Relevance == 1 completeness of attributes:  0.999219
+Relevance == 2 completeness of attributes:  0.999039
+Relevance == 3 completeness of attributes:  0.999257
+TRAIN STUFF
+Overall completeness of attributes:  0.999164
+
+
+
+
+
+
 
 Evaluation
 
