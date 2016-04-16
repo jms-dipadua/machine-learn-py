@@ -46,7 +46,7 @@ def train(features):
     return model
 
 #NWORDS = train(words(file('big_mod.txt').read()))
-NWORDS = train(words(file('product_descriptions_etc.txt').read()))
+NWORDS = train(words(file('data/product_descriptions_etc.txt').read()))
 BRAND_S_WORDS = list('rheem', 'kohler', 'hampton', 'rosario', 'owens', 'kingsley', 'stanley', 'melnor', 'ge', 'fuego', 'ryobi', 'andersen', 'montagna', 'westminister', 'dewalt', 'lennox', 'quikrete', 'paslode', 'closetmaid', 'prehung', 'backsplash', 'malibu', 'kobalt', 'rustoleum', 'wonderboard,gilmore', 'electrolux', 'samsung', 'jeldwen', 'milwaukee', 'pex', 'werner', 'decora', 'dpdt', 'azek', 'grafton', 'maytag', 'dremel', 'yonkers', 'swanstone', 'martha', 'stewart', 'formica', 'countertop', 'honda', 'valvoline', 'everbilt', 'bullnose', 'wonderboard', 'honeywell', 'rheem', 'riosa', 'wilsonart', 'moen', 'durock', 'rayovac', 'masonite', 'sauder', 'tv', 'maglite', 'vormax', 'bosch', 'french', 'paracord', 'wellworth', 'banbury', 'btu')
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'

@@ -26,8 +26,8 @@ TODO  * run spell check on the data and save a "clean file"
 √  * conduct a root-word analysis 
 
 TODO 
-* make sure all text is in lower case (for standardization)
-* run spell check on the data and save a "clean file"
+√ * make sure all text is in lower case (for standardization)
+√ * run spell check on the data and save a "clean file"
 * keyword count
 	- title
 	- description
