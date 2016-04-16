@@ -41,8 +41,8 @@ class Transformer:
 		# self.initial_data_drop() # if applicable (place holder for future)
 		#self.spell_check()
 		self.gen_stems()
-		self.gen_tfidf()
-		self.calc_cosine_sim()
+		#self.gen_tfidf()
+		#self.calc_cosine_sim()
 		#self.count_keywords() # COULD go this route...but what about kw_ratio() instead...
 		self.calc_kw_ratio()
 		self.data_drop() # drop unneeded cols
@@ -136,20 +136,20 @@ class Transformer:
 		self.dataframe['kw_ratio'] = np.zeros(self.dataframe['search_terms_fixed'].shape[0])
 		for i in range(self.dataframe['search_terms_fixed'].shape[0]):
 			kws_matched = 0
-			keywords = self.dataframe['search_terms_fixed'].iloc(i)
+			keywords = self.dataframe['search_terms_fixed'].iloc[i]
 			# check for phase in both product title and product description
-			if keywords in self.dataframe['product_title'].iloc(i):
+			if keywords in self.dataframe['product_title'].iloc[i]:
 				kws_matched += 1
-			if keywords in self.dataframe['product_description'].iloc(i):
+			if keywords in self.dataframe['product_description'].iloc[i]:
 				kws_matched += 1
 			# then check for individuals 
 			for keyword in keywords:
-				if keyword in self.dataframe['product_title'].iloc(i):
+				if keyword in self.dataframe['product_title'].iloc[i]:
 					kws_matched += 1
-				if keyword in self.dataframe['product_description'].iloc(i):
+				if keyword in self.dataframe['product_description'].iloc[i]:
 					kws_matched += 1
 			# then update the kw_ratio
-			self.dataframe['kw_ratio'].iloc(i) = kws_matched / kw_phrase_length
+			self.dataframe['kw_ratio'].iloc[i] = kws_matched / kw_phrase_length
 
 	
 	def data_drop(self):
