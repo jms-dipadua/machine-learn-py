@@ -39,7 +39,7 @@ class Transformer:
 		self.read_file()
 		self.lower_case() # this was a step in stemmer but going to apply as stand-alone
 		# self.initial_data_drop() # if applicable (place holder for future)
-		self.spell_check()
+		#self.spell_check()
 		self.gen_stems()
 		self.gen_tfidf()
 		self.calc_cosine_sim()
@@ -58,10 +58,13 @@ class Transformer:
 	def lower_case(self):
 		if not self.dataframe['product_title'].empty:
 			self.dataframe['product_title'] = self.dataframe['product_title'].str.lower().str.split()
-		if not self.dataframe['search_term'].empty:
+		if not self.dataframe['search_term'].empty:  # this is is only applicable for spellechecked stuff
 			self.dataframe['search_term'] = self.dataframe['search_term'].str.lower().str.split()
-		if not self.dataframe['search_term'].empty:
-			self.dataframe['product_description'] = self.dataframe['product_description'].str.lower().str.split()
+		#if not self.dataframe['product_description'].empty:
+			#self.dataframe['product_description'] = self.dataframe['product_description'].str.lower().str.split()
+		# this is is only applicable for spellechecked stuff
+		if not self.dataframe['search_terms_fixed'].empty:  
+			self.dataframe['search_terms_fixed'] = self.dataframe['search_terms_fixed'].str.lower().str.split()
 
 	def spell_check(self):
 		# going to work on this part after steming ("just cuz")
@@ -84,6 +87,8 @@ class Transformer:
 		# other stuff worth investigating is splitting on - becauset here are things like 3-piece BUT those could be useful so...yeah... 
 		# sanity check
 		#print self.dataframe['product_title']
+		if not self.dataframe['search_terms_fixed'].empty:  
+			self.dataframe['search_terms_fixed'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
 	
 	def gen_tfidf(self):
 		self.tfv = TfidfVectorizer(min_df=3,  max_features=None, 
@@ -99,12 +104,19 @@ class Transformer:
 		if not self.dataframe['search_term'].empty:
 			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_term']), axis=1 ))
 			self.prod_query_tfidf =  self.tfv.transform(prod_query)
+
+		if not self.dataframe['search_terms_fixed'].empty:
+			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_terms_fixed']), axis=1 ))
+			self.prod_query_fixes_tfidf =  self.tfv.transform(prod_query)
 			
 	def calc_cosine_sim(self):
-		self.cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
+		self.prod_query_raw_cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
+		self.prod_query_fixes_cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
 		for i in range(self.prod_query_tfidf.shape[0]):
-			self.cosine_tfidf[i]=cosine_similarity(self.prod_query_tfidf[i,:], self.prod_title_tfidf[i,:])
-		self.dataframe['cosine_tfidf'] = self.cosine_tfidf
+			self.prod_query_raw_cosine_tfidf[i]=cosine_similarity(self.prod_query_tfidf[i,:], self.prod_title_tfidf[i,:])
+			self.prod_query_fixes_cosine_tfidf[i]=cosine_similarity(self.prod_query_fixes_tfidf[i,:], self.prod_title_tfidf[i,:])
+		self.dataframe['prod_query_raw_cosine_tfidf'] = self.prod_query_raw_cosine_tfidf
+		self.dataframe['prod_query_fixes_cosine_tfidf'] = self.prod_query_fixes_cosine_tfidf
 
 	def data_drop(self):
 		self.dataframe = self.dataframe.drop(['product_title', 'search_term'], axis=1)
