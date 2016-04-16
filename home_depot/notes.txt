@@ -39,6 +39,9 @@ TODO
 	-- argmax() to select highest probability and set classificiation
 		-> COULD setup a voting with the args though...or an avg of the rating... 
 * thesaurs on search query
+* translate ?? 
+	--> at least one instance of spanish: aspiradora (vacuum)
+
 
 --- V1  :: POC 
 predictions_v1.csv

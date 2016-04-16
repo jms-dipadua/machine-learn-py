@@ -48,3 +48,5 @@ def strip_html(raw_text):
 	text = re.sub('<[^>]*>', '', raw_text)
 	text = re.sub('.[^>]*}', '', text)
 	return text
+
+initialize()
