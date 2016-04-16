@@ -52,9 +52,12 @@ predictions_v1.csv
 _v1-2.csv
 - just an SVM of the same
 
+	:: v2 	::
+	:: v2_a ::
+- will include a new cosine calculation for the spell-checked search queries
+- next up will be to do keyword counts, likely in a similar fashion as to what was done w/ crowdsource: kw_1_cnt, kw_2_cnt, etc 
 
-
----- v2 ::
+Forward-THINKING stuff
  * looking at the distribution of attributes, we're about 99% across the board (see below)
  * based on this, i'm inclined to THROW OUT the training sets that DON'T have an attribute and train off that
 	-- again using the cosine distance 
@@ -69,6 +72,9 @@ _v1-2.csv
 		b) keyword match: pd
 		c) keyword match: attri
 	-- UBER LAST: get the damn spell check going! 
+
+ * review https://github.com/ChenglongChen/Kaggle_CrowdFlower
+	note: "  2. cosine similarity between query & title, query & description, title & description pairs" @ https://github.com/ChenglongChen/Kaggle_CrowdFlower/blob/master/Code/Feat/genFeat_basic_tfidf_feat.py
 
 
 TRAIN STUFF

@@ -43,32 +43,35 @@ class Transformer:
 		self.gen_stems()
 		self.gen_tfidf()
 		self.calc_cosine_sim()
+		#self.count_keywords() # COULD go this route...but what about kw_ratio() instead...
+		self.calc_kw_ratio()
 		self.data_drop() # drop unneeded cols
 		self.write_file()
 
 	def set_intial_params(self):
 		self.file_dir = "data/"
 		self.raw_file_name = raw_input("Enter File Name (no directory):   ") 
+		self.prod_des_file = "product_description.csv"
 		self.version_num = "v" + raw_input("Version Number of Transformation: ")
 		self.fin_file = self.file_dir + self.raw_file_name + "_" + self.version_num + ".csv"
 
 	def read_file(self):
 		self.dataframe = pd.read_csv(self.file_dir+self.raw_file_name, encoding ='ISO-8859-1') # same as latin-1
+		# then read in product description file and merge it into main dataframe
+		self.product_description = pd.read_csv(self.file_dir+self.prod_des_file, encoding ='ISO-8859-1') # same as latin-1
+		self.dataframe = self.dataframe.merge(self.product_description, how='inner', on='product_uid')	
+
 
 	def lower_case(self):
 		if not self.dataframe['product_title'].empty:
 			self.dataframe['product_title'] = self.dataframe['product_title'].str.lower().str.split()
 		if not self.dataframe['search_term'].empty:  # this is is only applicable for spellechecked stuff
 			self.dataframe['search_term'] = self.dataframe['search_term'].str.lower().str.split()
-		#if not self.dataframe['product_description'].empty:
-			#self.dataframe['product_description'] = self.dataframe['product_description'].str.lower().str.split()
+		if not self.dataframe['product_description'].empty:
+			self.dataframe['product_description'] = self.dataframe['product_description'].str.lower().str.split()
 		# this is is only applicable for spellechecked stuff
 		if not self.dataframe['search_terms_fixed'].empty:  
 			self.dataframe['search_terms_fixed'] = self.dataframe['search_terms_fixed'].str.lower().str.split()
-
-	def spell_check(self):
-		# going to work on this part after steming ("just cuz")
-		self.spll_chk = enchant.Dict("en_US")
 
 	def gen_stems(self):
 		# before steming we'll remove stop words
@@ -84,6 +87,8 @@ class Transformer:
 		if not self.dataframe['search_term'].empty:
 			#self.dataframe['search_term'] = self.dataframe['search_term'].str.lower().str.split()
 			self.dataframe['search_term'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
+		if not self.dataframe['product_description'].empty:
+			self.dataframe['product_description'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
 		# other stuff worth investigating is splitting on - becauset here are things like 3-piece BUT those could be useful so...yeah... 
 		# sanity check
 		#print self.dataframe['product_title']
@@ -118,8 +123,37 @@ class Transformer:
 		self.dataframe['prod_query_raw_cosine_tfidf'] = self.prod_query_raw_cosine_tfidf
 		self.dataframe['prod_query_fixes_cosine_tfidf'] = self.prod_query_fixes_cosine_tfidf
 
+	def count_keywords(self):
+		pass
+
+	def calc_kw_ratio(self):
+		# this may be better viewed as a "keyword density" function
+		# going to return a ratio of search phrase length to total keywords matched
+		# it will be a match on a) the keyword phrase and then b) the individual words within the search query
+		# for v.now, just apply to the fixed search terms... ??? 
+		# the thinking is that the higher the ratio (> 1), the better a the resulting match was 
+		self.kw_phrase_length = self.dataframe['search_terms_fixed'].apply(lambda x: length(x) ) 
+		self.dataframe['kw_ratio'] = np.zeros(self.dataframe['search_terms_fixed'].shape[0])
+		for i in range(self.dataframe['search_terms_fixed'].shape[0]):
+			kws_matched = 0
+			keywords = self.dataframe['search_terms_fixed'].iloc(i)
+			# check for phase in both product title and product description
+			if keywords in self.dataframe['product_title'].iloc(i):
+				kws_matched += 1
+			if keywords in self.dataframe['product_description'].iloc(i):
+				kws_matched += 1
+			# then check for individuals 
+			for keyword in keywords:
+				if keyword in self.dataframe['product_title'].iloc(i):
+					kws_matched += 1
+				if keyword in self.dataframe['product_description'].iloc(i):
+					kws_matched += 1
+			# then update the kw_ratio
+			self.dataframe['kw_ratio'].iloc(i) = kws_matched / kw_phrase_length
+
+	
 	def data_drop(self):
-		self.dataframe = self.dataframe.drop(['product_title', 'search_term'], axis=1)
+		self.dataframe = self.dataframe.drop(['product_title', 'search_term', 'search_terms_fixed'], axis=1)
 
 	def write_file(self):
 		final_file = self.dataframe.to_csv(self.fin_file,index=False)
