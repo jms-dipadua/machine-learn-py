@@ -150,8 +150,8 @@ class Transformer:
 					kws_matched += 1
 			# get the ratio (into the array)
 			kw_ratios[i] = self.kw_phrase_length[i] / kws_matched
-		 # after all is said and done, set the dataframe to the ratio
-		 self.dataframe['kw_ratios'] = kw_ratios
+		# after all is said and done, set the dataframe to the ratio
+		self.dataframe['kw_ratios'] = kw_ratios
 
 	
 	def data_drop(self):
