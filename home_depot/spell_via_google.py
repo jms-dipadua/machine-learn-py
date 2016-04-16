@@ -31,3 +31,7 @@ def spell_check(s):
 	else:
 		search = s
 	return search ;
+
+for search in searches:
+	speel_check_search= spell_check(search)
+	print (search+"->" + speel_check_search)
