@@ -19,6 +19,8 @@ from sklearn.metrics.pairwise import linear_kernel
 
 # for spell checking # PyEnchant
 import enchant 
+import enchant.checker
+from enchant.checker.CmdLineChecker import CmdLineChecker
 
 # for stemming and stopwords # PyStemmer + snowballstemmer 
 from nltk.stem.snowball import SnowballStemmer
@@ -35,8 +37,9 @@ class Transformer:
 	def __init__(self):
 		self.set_intial_params()
 		self.read_file()
+		self.lower_case() # this was a step in stemmer but going to apply as stand-alone
 		# self.initial_data_drop() # if applicable (place holder for future)
-		#self.spell_check()
+		self.spell_check()
 		self.gen_stems()
 		self.gen_tfidf()
 		self.calc_cosine_sim()
@@ -52,6 +55,14 @@ class Transformer:
 	def read_file(self):
 		self.dataframe = pd.read_csv(self.file_dir+self.raw_file_name, encoding ='ISO-8859-1') # same as latin-1
 
+	def lower_case(self):
+		if not self.dataframe['product_title'].empty:
+			self.dataframe['product_title'] = self.dataframe['product_title'].str.lower().str.split()
+		if not self.dataframe['search_term'].empty:
+			self.dataframe['search_term'] = self.dataframe['search_term'].str.lower().str.split()
+		if not self.dataframe['search_term'].empty:
+			self.dataframe['product_description'] = self.dataframe['product_description'].str.lower().str.split()
+
 	def spell_check(self):
 		# going to work on this part after steming ("just cuz")
 		self.spll_chk = enchant.Dict("en_US")
@@ -65,10 +76,10 @@ class Transformer:
 		# not as surgical as it could be but "easier" 
 		# note that we stem here as well as remove stop words
 		if not self.dataframe['product_title'].empty:
-			self.dataframe['product_title'] = self.dataframe['product_title'].str.lower().str.split()
+			#self.dataframe['product_title'] = self.dataframe['product_title'].str.lower().str.split()
 			self.dataframe['product_title'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
 		if not self.dataframe['search_term'].empty:
-			self.dataframe['search_term'] = self.dataframe['search_term'].str.lower().str.split()
+			#self.dataframe['search_term'] = self.dataframe['search_term'].str.lower().str.split()
 			self.dataframe['search_term'].apply(lambda x: [self.stemmer(item) for item in x if item not in self.stopwords_main])
 		# other stuff worth investigating is splitting on - becauset here are things like 3-piece BUT those could be useful so...yeah... 
 		# sanity check
