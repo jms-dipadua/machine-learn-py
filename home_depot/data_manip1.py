@@ -41,8 +41,8 @@ class Transformer:
 		# self.initial_data_drop() # if applicable (place holder for future)
 		#self.spell_check()
 		self.gen_stems()
-		#self.gen_tfidf()
-		#self.calc_cosine_sim()
+		self.gen_tfidf()
+		self.calc_cosine_sim()
 		#self.count_keywords() # COULD go this route...but what about kw_ratio() instead...
 		self.calc_kw_ratio()
 		self.data_drop() # drop unneeded cols
@@ -51,7 +51,7 @@ class Transformer:
 	def set_intial_params(self):
 		self.file_dir = "data/"
 		self.raw_file_name = raw_input("Enter File Name (no directory):   ") 
-		self.prod_des_file = "product_description.csv"
+		self.prod_des_file = "product_descriptions.csv"
 		self.version_num = "v" + raw_input("Version Number of Transformation: ")
 		self.fin_file = self.file_dir + self.raw_file_name + "_" + self.version_num + ".csv"
 
@@ -132,8 +132,8 @@ class Transformer:
 		# it will be a match on a) the keyword phrase and then b) the individual words within the search query
 		# for v.now, just apply to the fixed search terms... ??? 
 		# the thinking is that the higher the ratio (> 1), the better a the resulting match was 
-		self.kw_phrase_length = self.dataframe['search_terms_fixed'].apply(lambda x: length(x) ) 
-		self.dataframe['kw_ratio'] = np.zeros(self.dataframe['search_terms_fixed'].shape[0])
+		self.kw_phrase_length = self.dataframe['search_terms_fixed'].apply(lambda x: len(x) ) 
+		kw_ratios = np.zeros(self.dataframe['search_terms_fixed'].shape[0])
 		for i in range(self.dataframe['search_terms_fixed'].shape[0]):
 			kws_matched = 0
 			keywords = self.dataframe['search_terms_fixed'].iloc[i]
@@ -148,8 +148,10 @@ class Transformer:
 					kws_matched += 1
 				if keyword in self.dataframe['product_description'].iloc[i]:
 					kws_matched += 1
-			# then update the kw_ratio
-			self.dataframe['kw_ratio'].iloc[i] = kws_matched / kw_phrase_length
+			# get the ratio (into the array)
+		 	kw_ratios[i] = self.kw_phrase_length[i] / kws_matched
+		 # after all is said and done, set the dataframe to the ratio
+		 self.dataframe['kw_ratios'] = kw_ratios
 
 	
 	def data_drop(self):
