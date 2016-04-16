@@ -25,6 +25,20 @@ TODO  * run spell check on the data and save a "clean file"
 √  * run a stop-words on the data and save a "clean file"
 √  * conduct a root-word analysis 
 
+TODO 
+* run spell check on the data and save a "clean file"
+* keyword count
+	- title
+	- description
+	- attributes
+	- aggregate 
+* round and separate classifications
+	1.1 -> 1  :: 1.5 -> 2 :: 2.8 -> 3, etc
+	-- setup for three classification run w/ predict_proba
+	-- argmax() to select highest probability and set classificiation
+		-> COULD setup a voting with the args though...or an avg of the rating... 
+* thesaurs on search query
+
 --- V1  :: POC 
 predictions_v1.csv
 - just a logit using a single feature (cosine from product title and search query)
