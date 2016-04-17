@@ -57,7 +57,8 @@ _v1-2.csv
 - will include a new cosine calculation for the spell-checked search queries
 - next up will be to do keyword counts, likely in a similar fashion as to what was done w/ crowdsource: kw_1_cnt, kw_2_cnt, etc 
 	a_ you might want to consider combining the title & desc so it's only one search through... the search space is pretty large...see when file is written when youg et up in the morning
-
+	-> issues with kw_ratio...not srue what
+	-> don't forget you can mess w/ TfidfVectorizer(min_df). it MAY make sense to increase that... 
 
 
 Forward-THINKING stuff

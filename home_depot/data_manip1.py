@@ -43,17 +43,17 @@ class Transformer:
 		self.gen_stems()
 		self.gen_tfidf()
 		self.calc_cosine_sim()
-		#self.count_keywords() # COULD go this route...but what about kw_ratio() instead...
 		self.calc_kw_ratio()
 		self.data_drop() # drop unneeded cols
 		self.write_file()
 
 	def set_intial_params(self):
 		self.file_dir = "data/"
-		self.raw_file_name = raw_input("Enter File Name (no directory):   ") 
+		self.raw_file = raw_input("train or test:   ") 
+		self.raw_file_name = self.raw_file + '.csv'
 		self.prod_des_file = "product_descriptions.csv"
-		self.version_num = "v" + raw_input("Version Number of Transformation: ")
-		self.fin_file = self.file_dir + self.raw_file_name + "_" + self.version_num + ".csv"
+		self.version_num = raw_input("Version Number of Transformation: ")
+		self.fin_file = self.file_dir + self.raw_file + "_" + self.version_num + ".csv"
 
 	def read_file(self):
 		self.dataframe = pd.read_csv(self.file_dir+self.raw_file_name, encoding ='ISO-8859-1') # same as latin-1
@@ -113,27 +113,41 @@ class Transformer:
 		if not self.dataframe['search_terms_fixed'].empty:
 			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_terms_fixed']), axis=1 ))
 			self.prod_query_fixes_tfidf =  self.tfv.transform(prod_query)
+
+		# now do this all again for product description
+		if not self.dataframe['product_description'].empty:
+			prod_des = list(self.dataframe.apply(lambda x:'%s' % (x['product_description']), axis=1 ))
+			self.prod_des_tfidf = self.tfv.fit_transform(prod_des)
+
+		if not self.dataframe['search_term'].empty:
+			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_term']), axis=1 ))
+			self.des_query_tfidf =  self.tfv.transform(prod_query)
+
+		if not self.dataframe['search_terms_fixed'].empty:
+			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_terms_fixed']), axis=1 ))
+			self.des_query_fixes_tfidf =  self.tfv.transform(prod_query)
 			
 	def calc_cosine_sim(self):
+		# product titles to search term
 		self.prod_query_raw_cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
 		self.prod_query_fixes_cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
+		# prod description to search term 
+		self.des_query_raw_cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
+		self.des_query_fixes_cosine_tfidf = np.zeros(self.prod_query_tfidf.shape[0])
 		for i in range(self.prod_query_tfidf.shape[0]):
 			self.prod_query_raw_cosine_tfidf[i]=cosine_similarity(self.prod_query_tfidf[i,:], self.prod_title_tfidf[i,:])
 			self.prod_query_fixes_cosine_tfidf[i]=cosine_similarity(self.prod_query_fixes_tfidf[i,:], self.prod_title_tfidf[i,:])
+			self.des_query_raw_cosine_tfidf[i]=cosine_similarity(self.des_query_tfidf[i,:], self.prod_des_tfidf[i,:])
+			self.des_query_fixes_cosine_tfidf[i]=cosine_similarity(self.des_query_fixes_tfidf[i,:], self.prod_des_tfidf[i,:])
 		self.dataframe['prod_query_raw_cosine_tfidf'] = self.prod_query_raw_cosine_tfidf
 		self.dataframe['prod_query_fixes_cosine_tfidf'] = self.prod_query_fixes_cosine_tfidf
+		self.dataframe['des_query_raw_cosine_tfidf'] = self.des_query_raw_cosine_tfidf
+		self.dataframe['des_query_fixes_cosine_tfidf'] = self.des_query_fixes_cosine_tfidf
 
-	def count_keywords(self):
-		pass
-
-	def calc_kw_ratio(self):
-		# this may be better viewed as a "keyword density" function
-		# going to return a ratio of search phrase length to total keywords matched
+	def calc_kw_matches(self):
 		# it will be a match on a) the keyword phrase and then b) the individual words within the search query
 		# for v.now, just apply to the fixed search terms... ??? 
-		# the thinking is that the higher the ratio (> 1), the better a the resulting match was 
-		self.kw_phrase_length = self.dataframe['search_terms_fixed'].apply(lambda x: len(x) ) 
-		kw_ratios = np.zeros(self.dataframe['search_terms_fixed'].shape[0])
+		kw_matches = np.zeros(self.dataframe['search_terms_fixed'].shape[0])
 		for i in range(self.dataframe['search_terms_fixed'].shape[0]):
 			kws_matched = 0
 			keywords = self.dataframe['search_terms_fixed'].iloc[i]
@@ -149,13 +163,13 @@ class Transformer:
 				if keyword in self.dataframe['product_description'].iloc[i]:
 					kws_matched += 1
 			# get the ratio (into the array)
-			kw_ratios[i] = self.kw_phrase_length[i] / kws_matched
+			kw_matches[i] = kws_matched
 		# after all is said and done, set the dataframe to the ratio
-		self.dataframe['kw_ratios'] = kw_ratios
+		self.dataframe['kw_matches'] = kw_matches
 
 	
 	def data_drop(self):
-		self.dataframe = self.dataframe.drop(['product_title', 'search_term', 'search_terms_fixed'], axis=1)
+		self.dataframe = self.dataframe.drop(['product_title', 'search_term', 'search_terms_fixed', 'product_description'], axis=1)
 
 	def write_file(self):
 		final_file = self.dataframe.to_csv(self.fin_file,index=False)

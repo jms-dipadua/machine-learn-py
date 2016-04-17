@@ -17,10 +17,13 @@ def initialize():
   s_file = raw_input("What is name of final file?    ")
 
   checker = enchant.checker.SpellChecker("en_US")
+  BRAND_S_WORDS = list(['rheem', 'kohler', 'hampton', 'rosario', 'owens', 'kingsley', 'stanley', 'melnor', 'ge', 'fuego', 'ryobi', 'andersen', 'montagna', 'westminister', 'dewalt', 'lennox', 'quikrete', 'paslode', 'closetmaid', 'prehung', 'backsplash', 'malibu', 'kobalt', 'rustoleum', 'wonderboard,gilmore', 'electrolux', 'samsung', 'jeldwen', 'milwaukee', 'pex', 'werner', 'decora', 'dpdt', 'azek', 'grafton', 'maytag', 'dremel', 'yonkers', 'swanstone', 'martha', 'stewart', 'formica', 'countertop', 'honda', 'valvoline', 'everbilt', 'bullnose', 'wonderboard', 'honeywell', 'rheem', 'riosa', 'wilsonart', 'moen', 'durock', 'rayovac', 'masonite', 'sauder', 'tv', 'maglite', 'vormax', 'bosch', 'french', 'paracord', 'wellworth', 'banbury', 'btu'])
+
 
   file_data = pd.read_csv(chk_file)
   search_terms = file_data['search_term'].str.lower().str.split()
   search_terms_fixed = []
+  i = 0
   for search_term in search_terms:
     correct_wrds = []
     # following will look through search terms and only trigger the bayes check if there is a suspected error via enchant
@@ -29,8 +32,10 @@ def initialize():
         correct_wrds.append(correct(term))
       else:
         correct_wrds.append(term)
-
-    search_terms_fixed.append(correct_wrds)
+    # make them back into a nice string
+    correct_wrds_mod = ' '.join(correct_wrds)
+    # append to an arry to then add ot the dataframe
+    search_terms_fixed.append(correct_wrds_mod)
 
   file_data['search_terms_fixed'] = search_terms_fixed
   final_file = file_data.to_csv(s_file,index=False)
@@ -47,7 +52,6 @@ def train(features):
 
 #NWORDS = train(words(file('big_mod.txt').read()))
 NWORDS = train(words(file('data/product_descriptions_mod.txt').read()))
-BRAND_S_WORDS = list(['rheem', 'kohler', 'hampton', 'rosario', 'owens', 'kingsley', 'stanley', 'melnor', 'ge', 'fuego', 'ryobi', 'andersen', 'montagna', 'westminister', 'dewalt', 'lennox', 'quikrete', 'paslode', 'closetmaid', 'prehung', 'backsplash', 'malibu', 'kobalt', 'rustoleum', 'wonderboard,gilmore', 'electrolux', 'samsung', 'jeldwen', 'milwaukee', 'pex', 'werner', 'decora', 'dpdt', 'azek', 'grafton', 'maytag', 'dremel', 'yonkers', 'swanstone', 'martha', 'stewart', 'formica', 'countertop', 'honda', 'valvoline', 'everbilt', 'bullnose', 'wonderboard', 'honeywell', 'rheem', 'riosa', 'wilsonart', 'moen', 'durock', 'rayovac', 'masonite', 'sauder', 'tv', 'maglite', 'vormax', 'bosch', 'french', 'paracord', 'wellworth', 'banbury', 'btu'])
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
