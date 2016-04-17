@@ -21,19 +21,18 @@ class SearchInput:
 
 	def get_params(self):
 		self.file_dir = "data/"
-		self.X_train_file = raw_input("Training Data File (no dir)") 
-		self.X_test_file = raw_input("Testing Data File (no dir)") 
+		self.X_train_file = raw_input("Training Data File (no dir):   ") 
+		self.X_test_file = raw_input("Testing Data File (no dir):    ") 
 
 	def read_file(self):
 		# get the training data
-		X_train_test = pd.read_csv(self.file_dir + self.X_train_file)
-		self.X_train = X_train_test['prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf', 'des_query_raw_cosine_tfidf', 'des_query_fixes_cosine_tfidf', 'kw_matches']
-		self.X_train = pd.DataFrame(self.X_train)
-		self.y_train = X_train_test['relevance']
+		X_train_raw = pd.read_csv(self.file_dir + self.X_train_file)
+		self.X_train = X_train_raw.drop(['id', 'product_uid', 'relevance'], axis=1)
+		self.y_train = X_train_raw['relevance']
 		# get the testing data 
-		self.X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
-		self.X_test = pd.DataFrame(self.X_test_raw['prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf', 'des_query_raw_cosine_tfidf', 'des_query_fixes_cosine_tfidf', 'kw_matches'])
-		self.fin_df = pd.DataFrame(self.X_test_raw.drop(['product_uid', 'cosine_tfidf'], axis=1))
+		X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
+		self.X_test = X_test_raw.drop(['id', 'product_uid'], axis=1)
+		self.fin_df = X_test_raw.drop(['product_uid', 'prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf','des_query_raw_cosine_tfidf','des_query_fixes_cosine_tfidf','kw_matches'], axis=1)
 
 class LearnedPrediction():
 	def __init__(self):
@@ -64,7 +63,7 @@ class LearnedPrediction():
 	
 	def write_file(self):
 		# for a singleton model, we just make it a dataframe and write it
-		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
+		self.search_inputs.fin_df['relevance'] = np.array(self.logit_preds) # easy swap in / out 
 		print self.search_inputs.fin_df.shape
 		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name, float_format='%.2f', index=False)
 
