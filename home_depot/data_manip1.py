@@ -43,7 +43,7 @@ class Transformer:
 		self.gen_stems()
 		self.gen_tfidf()
 		self.calc_cosine_sim()
-		self.calc_kw_ratio()
+		self.calc_kw_matches()
 		self.data_drop() # drop unneeded cols
 		self.write_file()
 
