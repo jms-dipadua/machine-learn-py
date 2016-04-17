@@ -40,11 +40,16 @@ class Transformer:
 		self.lower_case() # this was a step in stemmer but going to apply as stand-alone
 		# self.initial_data_drop() # if applicable (place holder for future)
 		#self.spell_check()
+		print "stemming ... "
 		self.gen_stems()
+		print "tfidf'ing ... "
 		self.gen_tfidf()
+		print "cosine'ing ... "
 		self.calc_cosine_sim()
+		print "kw matching... "
 		self.calc_kw_matches()
 		self.data_drop() # drop unneeded cols
+		print "saving... "
 		self.write_file()
 
 	def set_intial_params(self):

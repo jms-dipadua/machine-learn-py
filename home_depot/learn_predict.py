@@ -27,22 +27,27 @@ class SearchInput:
 	def read_file(self):
 		# get the training data
 		X_train_test = pd.read_csv(self.file_dir + self.X_train_file)
-		self.X_train = X_train_test['cosine_tfidf'] # may have to reshape this...
+		self.X_train = X_train_test['prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf', 'des_query_raw_cosine_tfidf', 'des_query_fixes_cosine_tfidf', 'kw_matches']
 		self.X_train = pd.DataFrame(self.X_train)
 		self.y_train = X_train_test['relevance']
 		# get the testing data 
 		self.X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
-		self.X_test = pd.DataFrame(self.X_test_raw['cosine_tfidf'])
+		self.X_test = pd.DataFrame(self.X_test_raw['prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf', 'des_query_raw_cosine_tfidf', 'des_query_fixes_cosine_tfidf', 'kw_matches'])
 		self.fin_df = pd.DataFrame(self.X_test_raw.drop(['product_uid', 'cosine_tfidf'], axis=1))
 
 class LearnedPrediction():
 	def __init__(self):
 		self.search_inputs = SearchInput()
 		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number") + ".csv"
-		#self.pre_process_data()
-		self.svm()
+		self.pre_process_data()
+		#self.svm()
 		self.logit()
 		self.write_file()
+
+	def pre_process_data(self):
+		scaler = StandardScaler()
+		self.search_inputs.X_train = scaler.fit_transform(self.search_inputs.X_train)
+		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
 		regression = svm.SVR(kernel='poly', C=100, gamma=0.1, verbose=True)
