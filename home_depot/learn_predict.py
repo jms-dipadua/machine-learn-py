@@ -92,13 +92,12 @@ class LearnedPrediction():
 		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
-		
 		C_range = np.logspace(-2, 10, 4)
 		print C_range
 		gamma_range = np.logspace(-9, 3, 4)
 		print gamma_range
 		param_grid = dict(gamma=gamma_range, C=C_range)
-		cv = StratifiedShuffleSplit(self.search_inputs.y_train, n_iter=5, test_size=0.2, random_state=42)
+		cv = ShuffleSplit(self.search_inputs.y_train, n_iter=5, test_size=0.2, random_state=42)
 		grid = GridSearchCV(SVR(verbose=True), param_grid=param_grid, cv=cv)
 		#grid = GridSearchCV(svm.SVR(kernel='rbf', verbose=True), param_grid=param_grid, cv=cv)
 		grid.fit(self.search_inputs.X_train, self.search_inputs.y_train)
