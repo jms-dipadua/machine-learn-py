@@ -16,7 +16,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import f1_score, accuracy_score, mean_absolute_error
 from sklearn.preprocessing import StandardScaler
-from sklearn.cross_validation import train_test_split, StratifiedKFold, KFold, StratifiedShuffleSplit
+from sklearn.cross_validation import train_test_split, StratifiedKFold, KFold, StratifiedShuffleSplit, ShuffleSplit
 from sklearn.learning_curve import learning_curve
 from sklearn.grid_search import GridSearchCV
 
@@ -97,7 +97,7 @@ class LearnedPrediction():
 		gamma_range = np.logspace(-9, 3, 4)
 		print gamma_range
 		param_grid = dict(gamma=gamma_range, C=C_range)
-		cv = ShuffleSplit(self.search_inputs.y_train, n_iter=5, test_size=0.2, random_state=42)
+		cv = ShuffleSplit(len(self.search_inputs.y_train), n_iter=5, test_size=0.2, random_state=42)
 		grid = GridSearchCV(SVR(verbose=True), param_grid=param_grid, cv=cv)
 		#grid = GridSearchCV(svm.SVR(kernel='rbf', verbose=True), param_grid=param_grid, cv=cv)
 		grid.fit(self.search_inputs.X_train, self.search_inputs.y_train)
@@ -111,12 +111,13 @@ class LearnedPrediction():
 		regression = SVR(kernel='rbf', C=1e3, gamma=0.1, verbose=True)
 		regress_fit = regression.fit(self.search_inputs.X_train,self.search_inputs.y_train)
 		self.svm_preds = regress_fit.predict(self.search_inputs.X_test)
+		"""
 		for i in range(0,len(self.svm_preds) - 1):
 			if self.svm_preds[i] < 1:
 				self.svm_preds[i] = 1.00
 			elif self.svm_preds[i] > 3:
 				self.svm_preds[i] = 3.00
-		"""
+		
 
 	def logit(self):
 		# experiment: create non-continuous "groups"
