@@ -108,7 +108,14 @@ class LearnedPrediction():
 		self.svm_preds = grid.predict(self.search_inputs.X_test)
 		
 		"""
-
+		regression = SVR(kernel='rbf', C=1e3, gamma=0.1, verbose=True)
+		regress_fit = regression.fit(self.search_inputs.X_train,self.search_inputs.y_train)
+		self.svm_preds = regress_fit.predict(self.search_inputs.X_test)
+		for i in range(0,len(self.svm_preds) - 1):
+			if self.svm_preds[i] < 1:
+				self.svm_preds[i] = 1.00
+			elif self.svm_preds[i] > 3:
+				self.svm_preds[i] = 3.00
 
 
 	def logit(self):
