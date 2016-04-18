@@ -80,9 +80,9 @@ class LearnedPrediction():
 		self.search_inputs = SearchInput()
 		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number:  ") + ".csv"
 		self.pre_process_data()
-		#self.svm()
+		self.svm()
 		#self.logit()
-		self.ann()
+		#self.ann()
 		self.write_file()
 
 	def pre_process_data(self):
