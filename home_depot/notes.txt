@@ -112,6 +112,8 @@ logit:  v2-1.csv
 SVM: v2-1b.csv 
 	- not sure what happened but output was HIGHER than expected:
 		:: got values like 3.4x ...wth? 
+		:: MIGHT because i used SVR() (to minimize error)
+		:: going to switch to SVM() and treat them all as classes
 
 - going to evaluate stratification in sampling
    values < 2 (1.1, 1.3, 1.x, etc)  (of 74067 in X_train)
@@ -138,6 +140,36 @@ SVM: v2-1b.csv
  summary(X_train$relevance)
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
   1.000   2.000   2.330   2.382   3.000   3.000 
+
+--> V2B-1 <---
+v2b-1.csv (logit)
+	:: ran because it's a LOT faster than the SVM
+	:: may not submit (to save submissions for day)
+	:; looking at output, the predictions now are ONLY 2.33 or 1.67
+	:: THINKING about this, it makes sense. i think i need to recode the relevance
+		--> enter "rounding" ...heh. 
+		keeping groups: pseudo: self.search_inputs.y_train.apply(lambda x: (round(x * 2.0) / 2.0)
+vlinear1.csv
+	:: this runs the linear regression, so treating them as continuous values
+	...seems pretty biased toward mid-to-high "1s" and not toward 2.xx
+	:: submitted for benchmark: Your submission scored 0.75622
+
+DIGGING in a bit more, looks like it MAY be better to reclass things a bit more
+   values < 1.5  (of 74067 in X_train)
+	FALSE  TRUE 
+	68952  5115  :: 6.91%
+   values <= 2  & 1.5
+	FALSE  TRUE 
+	55548 18519 :: 
+   values < 2.5 > 2
+	FALSE  TRUE 
+	57996 16071  :: 21.70%
+   values > 2.5 < 3
+	FALSE  TRUE 
+	58854 15213 :: 20.53%
+  values == 3
+	FALSE  TRUE 
+	54942 19125 :: 25.82%
 
 
 Evaluation
