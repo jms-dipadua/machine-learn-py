@@ -49,7 +49,7 @@ class SearchInput:
 		X_train_comp.append(X_train_g3_s)
 		X_train_comp.append(X_train_g4_s)
 		self.X_train = X_train_comp.drop(['id', 'product_uid', 'relevance'], axis=1)
-		self.y_train = pd.DataFrame(X_train_comp['relevance'])
+		self.y_train = X_train_comp['relevance']
 		# get the testing data 
 		X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
 		self.X_test = X_test_raw.drop(['id', 'product_uid'], axis=1)
@@ -83,7 +83,6 @@ class LearnedPrediction():
 		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
-		
 		C_range = np.logspace(-2, 10, 4)
 		print C_range
 		gamma_range = np.logspace(-9, 3, 4)
