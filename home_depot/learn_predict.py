@@ -31,15 +31,11 @@ class SearchInput:
 		# we're going to do some sampling to get rid of skew in data 
 		# first we'll get the row nums where the relevance is in a range of values
 		# <2 (group1); <2.5 & >2 (group2); >2.5 & <3 (group3); == 3 (group4)
-		rows_group1 = X_train_raw.loc[X_train_raw['relevance'] < 2]
-		rows_group2 = X_train_raw.loc[X_train_raw['relevance'] > 2 && X_train_raw['relevance'] < 2.5]
-		rows_group3 = X_train_raw.loc[X_train_raw['relevance'] > 2.5 && X_train_raw['relevance'] < 3]
-		rows_group4 = X_train_raw.loc[X_train_raw['relevance'] == 3]
+		X_train_g1 = X_train_raw.loc[X_train_raw['relevance'] < 2]
+		X_train_g2 = X_train_raw.loc[(X_train_raw['relevance'] > 2) & (X_train_raw['relevance'] < 2.5)]
+		X_train_g3 = X_train_raw.loc[(X_train_raw['relevance'] > 2.5) & (X_train_raw['relevance'] < 3)]
+		X_train_g4 = X_train_raw.loc[X_train_raw['relevance'] == 3]
 		# THEN we take samples based on those (so our final train data is proportional between the ranges)
-		X_train_g1 = X_train_raw.ix[rows_group1] # we will use this output shape as the base # to randomly sample the others
-		X_train_g2 = X_train_raw.ix[rows_group2]
-		X_train_g3 = X_train_raw.ix[rows_group3]
-		X_train_g4 = X_train_raw.ix[rows_group4]
 		# final samples (w/out replacement)
 		X_train_g2_s = X_train_g2.sample(n = X_train_g1.shape[0], replace=False)
 		X_train_g3_s = X_train_g3.sample(n = X_train_g1.shape[0], replace=False)
@@ -70,8 +66,11 @@ class LearnedPrediction():
 		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
-		C_range = np.logspace(-2, 10, 13)
-		gamma_range = np.logspace(-9, 3, 13)
+		C_range = np.logspace(-2, 10, 3)
+		print C_range
+		gamma_range = np.logspace(-9, 3, 3)
+		print gamma_range
+		exit()
 		param_grid = dict(gamma=gamma_range, C=C_range)
 		cv = StratifiedShuffleSplit(self.search_inputs.y_train, n_iter=5, test_size=0.2, random_state=42)
 		grid = GridSearchCV(svm.SVR(kernel='rbf', verbose=True), param_grid=param_grid, cv=cv)
