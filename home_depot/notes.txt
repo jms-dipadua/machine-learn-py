@@ -28,7 +28,7 @@ TODO  * run spell check on the data and save a "clean file"
 TODO 
 √ * make sure all text is in lower case (for standardization)
 √ * run spell check on the data and save a "clean file"
-* keyword count
+√* keyword count  -> currently as an aggregate. could maybe do them separately
 	- title
 	- description
 	- attributes
@@ -38,7 +38,7 @@ TODO
 	-- setup for three classification run w/ predict_proba
 	-- argmax() to select highest probability and set classificiation
 		-> COULD setup a voting with the args though...or an avg of the rating... 
-* thesaurs on search query
+* thesaurs on search query  
 * translate ?? 
 	--> at least one instance of spanish: aspiradora (vacuum)
 
@@ -90,9 +90,46 @@ TRAIN STUFF
 Overall completeness of attributes:  0.999164
 
 
+ ---- **  V2 ** ----
+* got spell check working (but it is sort of weaksauce)
+	-- MAYBE need to build a better dictionary :: something hardware specific ??? 
+* has C.-D. for search_term -> PT and -> PD
+	-- takes a REALLY long time to run for PD...
 
+train / test files:  train_bayes3b_2b-1.csv
+	:: 3rd iteration of bayes w/ a) addition of prod_des to text file; b) inclusion of brands in stopwords (not sure it works properly); c) use of enchant.checker to trigger the spelling error
+	:: includes kw_matches (as strict count, no ratios)
+	:: includes a "raw_cosine" distance for pt and pd and then a spellchecked version ((because there are inconsistencies in output))
+		--> thinking is (if time permits) to pursue thesaurus route...saw a top team mentioning it...so probably on to something)
 
+ -- for models, included scaler because the cosine distances are all .xxx and the kw_matches are all ints, so better to scale everything
 
+logit:  v2-1.csv
+	- SADLY, this outputs the EXACT SAME THING! WTF??? 
+		-> error? 
+		-> needs the separation of class??? 
+
+SVM: v2-1b.csv 
+	- not sure what happened but output was HIGHER than expected:
+		:: got values like 3.4x ...wth? 
+
+- going to evaluate stratification in sampling
+   values < 2 (1.1, 1.3, 1.x, etc)  (of 74067 in X_train)
+	FALSE  TRUE 
+	62158 11909  :: 16.08%
+   values < 2.5 > 2
+	FALSE  TRUE 
+	57996 16071  :: 21.70%
+   values > 2.5 < 3
+	FALSE  TRUE 
+	58854 15213 :: 20.53%
+  values == 3
+	FALSE  TRUE 
+	54942 19125 :: 25.82%
+
+ summary(X_train$relevance)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   2.000   2.330   2.382   3.000   3.000 
 
 
 Evaluation
