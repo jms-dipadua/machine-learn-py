@@ -28,11 +28,31 @@ class SearchInput:
 	def read_file(self):
 		# get the training data
 		X_train_raw = pd.read_csv(self.file_dir + self.X_train_file)
-		self.X_train = X_train_raw.drop(['id', 'product_uid', 'relevance'], axis=1).values
-		self.y_train = X_train_raw['relevance'].values
+		# we're going to do some sampling to get rid of skew in data 
+		# first we'll get the row nums where the relevance is in a range of values
+		# <2 (group1); <2.5 & >2 (group2); >2.5 & <3 (group3); == 3 (group4)
+		rows_group1 = X_train_raw.loc[X_train_raw['relevance'] < 2]
+		rows_group2 = X_train_raw.loc[X_train_raw['relevance'] > 2 && X_train_raw['relevance'] < 2.5]
+		rows_group3 = X_train_raw.loc[X_train_raw['relevance'] > 2.5 && X_train_raw['relevance'] < 3]
+		rows_group4 = X_train_raw.loc[X_train_raw['relevance'] == 3]
+		# THEN we take samples based on those (so our final train data is proportional between the ranges)
+		X_train_g1 = X_train_raw.ix[rows_group1] # we will use this output shape as the base # to randomly sample the others
+		X_train_g2 = X_train_raw.ix[rows_group2]
+		X_train_g3 = X_train_raw.ix[rows_group3]
+		X_train_g4 = X_train_raw.ix[rows_group4]
+		# final samples (w/out replacement)
+		X_train_g2_s = X_train_g2.sample(n = X_train_g1.shape[0], replace=False)
+		X_train_g3_s = X_train_g3.sample(n = X_train_g1.shape[0], replace=False)
+		X_train_g4_s = X_train_g4.sample(n = X_train_g1.shape[0], replace=False)
+		# stack them up: this is our final X_train 
+		X_train_comp = X_train_g1.append(X_train_g2_s)
+		X_train_comp.append(X_train_g3_s)
+		X_train_comp.append(X_train_g4_s)
+		self.X_train = X_train_comp.drop(['id', 'product_uid', 'relevance'], axis=1)
+		self.y_train = X_train_comp['relevance']
 		# get the testing data 
 		X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
-		self.X_test = X_test_raw.drop(['id', 'product_uid'], axis=1).values
+		self.X_test = X_test_raw.drop(['id', 'product_uid'], axis=1)
 		self.fin_df = X_test_raw.drop(['product_uid', 'prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf','des_query_raw_cosine_tfidf','des_query_fixes_cosine_tfidf','kw_matches'], axis=1)
 
 class LearnedPrediction():

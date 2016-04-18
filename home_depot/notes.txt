@@ -127,6 +127,14 @@ SVM: v2-1b.csv
 	FALSE  TRUE 
 	54942 19125 :: 25.82%
 
+-> SO, objective would be to have about 25% across all four "class strata" (<2, >2<2.5, etc)
+	process: 
+	a) create a df with all <2 (11909)
+	b) create a df with all >2 < 2.5
+	c) create a df with all >2.5 < 3
+	d) create a df with all == 3
+	e) take random samples from each df where #_samples == num_in<2_group (11909)
+
  summary(X_train$relevance)
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
   1.000   2.000   2.330   2.382   3.000   3.000 
