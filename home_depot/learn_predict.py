@@ -83,6 +83,7 @@ class LearnedPrediction():
 		self.svm()
 		#self.logit()
 		#self.ann()
+		#self.ensemble()
 		self.write_file()
 
 	def pre_process_data(self):
@@ -91,14 +92,14 @@ class LearnedPrediction():
 		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
-		"""
+		
 		C_range = np.logspace(-2, 10, 4)
 		print C_range
 		gamma_range = np.logspace(-9, 3, 4)
 		print gamma_range
 		param_grid = dict(gamma=gamma_range, C=C_range)
 		cv = StratifiedShuffleSplit(self.search_inputs.y_train, n_iter=5, test_size=0.2, random_state=42)
-		grid = GridSearchCV(svm.LinearSVC(verbose=True), param_grid=param_grid, cv=cv)
+		grid = GridSearchCV(SVR(verbose=True), param_grid=param_grid, cv=cv)
 		#grid = GridSearchCV(svm.SVR(kernel='rbf', verbose=True), param_grid=param_grid, cv=cv)
 		grid.fit(self.search_inputs.X_train, self.search_inputs.y_train)
 
@@ -116,7 +117,7 @@ class LearnedPrediction():
 				self.svm_preds[i] = 1.00
 			elif self.svm_preds[i] > 3:
 				self.svm_preds[i] = 3.00
-
+		"""
 
 	def logit(self):
 		# experiment: create non-continuous "groups"
@@ -138,10 +139,10 @@ class LearnedPrediction():
 	def ann(self):
 		#print self.company.X_train.shape[1]
 		model = Sequential()
-		model.add(Dense(input_dim=self.search_inputs.X_train.shape[1], output_dim=50, init="glorot_uniform"))
+		model.add(Dense(input_dim=self.search_inputs.X_train.shape[1], output_dim=10, init="glorot_uniform"))
 		model.add(Activation('tanh'))
 		model.add(Dropout(0.1))
-		model.add(Dense(input_dim=50, output_dim=10, init="uniform"))
+		model.add(Dense(input_dim=10, output_dim=10, init="uniform"))
 		model.add(Activation('tanh'))
 		model.add(Dropout(0.5))
 		model.add(Dense(input_dim=10, output_dim=1, init="glorot_uniform"))
@@ -149,26 +150,29 @@ class LearnedPrediction():
 
 		sgd = SGD(lr=0.3, decay=1e-6, momentum=0.9, nesterov=True)
 		model.compile(loss='mean_squared_error', optimizer='sgd')
-		early_stopping = EarlyStopping(monitor='val_loss', patience=70)
+		early_stopping = EarlyStopping(monitor='val_loss', patience=25)
 		#epoch_score = model.evaluate(X_score, y_score, batch_size = 16) # this doesn't work
 		# first model
 		print "fitting first model"
-		model.fit(self.search_inputs.X_train, self.search_inputs.y_train, nb_epoch=500, validation_split=.1, batch_size=16, verbose = 1, show_accuracy = True, shuffle = False, callbacks=[early_stopping])
+		model.fit(self.search_inputs.X_train, self.search_inputs.y_train, nb_epoch=100, validation_split=.1, batch_size=100, verbose = 1, show_accuracy = True, shuffle = True, callbacks=[early_stopping])
 		#score = model.evaluate(self.company.X_cv, self.company.y_cv, show_accuracy=True, batch_size=16)
 		self.ann_preds = model.predict(self.search_inputs.X_test)
-		#print self.ann_preds
-		#print score
-		# visualize
-		#plot(model, to_file= self.company.fin_file_name + '.png')
+		#just in case (like w/ svr)
+		for i in range(0,len(self.ann_preds) - 1):
+			if self.ann_preds[i] < 1:
+				self.ann_preds[i] = 1.00
+			elif self.ann_preds[i] > 3:
+				self.ann_preds[i] = 3.00
 
 		return
 
-	def relevance_vote(self):
+	def ensemble(self):
+		self.preds_final = (self.logit_preds + self.svm_preds + self.ann_preds) / 3
 		pass 
 	
 	def write_file(self):
 		# for a singleton model, we just make it a dataframe and write it
-		self.search_inputs.fin_df['relevance'] = np.array(self.ann_preds) # easy swap in / out 
+		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
 		print self.search_inputs.fin_df.shape
 		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name, float_format='%.2f', index=False)
 

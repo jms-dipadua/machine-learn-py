@@ -171,6 +171,11 @@ DIGGING in a bit more, looks like it MAY be better to reclass things a bit more
 	FALSE  TRUE 
 	54942 19125 :: 25.82%
 
+EX: 2b-4.csv
+	- uses svr(); again predictions > 3 and < 1
+	- SO, putting in ceiling and floors. just need to get a benchmark for performance
+EX: 2b-5.csv
+	- svr with ceilings and floors
 
 Evaluation
 
