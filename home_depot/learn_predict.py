@@ -9,6 +9,7 @@ import pandas as pd
 import math 
 
 from sklearn import svm
+from sklearn.svm import SVR
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import PolynomialFeatures
@@ -18,6 +19,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split, StratifiedKFold, KFold, StratifiedShuffleSplit
 from sklearn.learning_curve import learning_curve
 from sklearn.grid_search import GridSearchCV
+
+from keras.models import Sequential
+from keras.layers.core import Dense, Activation, Dropout, Flatten
+from keras.layers.convolutional import Convolution1D, MaxPooling1D, Convolution2D, MaxPooling2D
+from keras.optimizers import SGD
+from keras.callbacks import EarlyStopping
 
 class SearchInput:
 	def __init__(self):
@@ -36,8 +43,8 @@ class SearchInput:
 		# first we'll get the row nums where the relevance is in a range of values
 		# <2 (group1); <2.5 & >2 (group2); >2.5 & <3 (group3); == 3 (group4)
 		X_train_g1 = X_train_raw.loc[X_train_raw['relevance'] < 2]
-		X_train_g2 = X_train_raw.loc[(X_train_raw['relevance'] > 1.9) & (X_train_raw['relevance'] < 2.5)]
-		X_train_g3 = X_train_raw.loc[(X_train_raw['relevance'] > 2.5) & (X_train_raw['relevance'] < 3)]
+		X_train_g2 = X_train_raw.loc[(X_train_raw['relevance'] > 1.9) & (X_train_raw['relevance'] < 2.4)]
+		X_train_g3 = X_train_raw.loc[(X_train_raw['relevance'] > 2.6) & (X_train_raw['relevance'] < 3)]
 		X_train_g4 = X_train_raw.loc[X_train_raw['relevance'] == 3]
 		# THEN we take samples based on those (so our final train data is proportional between the ranges)
 		# final samples (w/out replacement)
@@ -73,8 +80,9 @@ class LearnedPrediction():
 		self.search_inputs = SearchInput()
 		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number:  ") + ".csv"
 		self.pre_process_data()
-		self.svm()
+		#self.svm()
 		#self.logit()
+		self.ann()
 		self.write_file()
 
 	def pre_process_data(self):
@@ -83,13 +91,15 @@ class LearnedPrediction():
 		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
+		"""
 		C_range = np.logspace(-2, 10, 4)
 		print C_range
 		gamma_range = np.logspace(-9, 3, 4)
 		print gamma_range
 		param_grid = dict(gamma=gamma_range, C=C_range)
 		cv = StratifiedShuffleSplit(self.search_inputs.y_train, n_iter=5, test_size=0.2, random_state=42)
-		grid = GridSearchCV(svm.SVR(kernel='rbf', verbose=True), param_grid=param_grid, cv=cv)
+		grid = GridSearchCV(svm.LinearSVC(verbose=True), param_grid=param_grid, cv=cv)
+		#grid = GridSearchCV(svm.SVR(kernel='rbf', verbose=True), param_grid=param_grid, cv=cv)
 		grid.fit(self.search_inputs.X_train, self.search_inputs.y_train)
 
 		print("The best parameters are %s with a score of %0.2f"
@@ -98,29 +108,67 @@ class LearnedPrediction():
 		self.svm_preds = grid.predict(self.search_inputs.X_test)
 		
 		"""
-		regression = svm.SVR(kernel='rbf', C=10000, gamma=0.1, verbose=True)
+		regression = SVR(kernel='rbf', C=1e3, gamma=0.1, verbose=True)
 		regress_fit = regression.fit(self.search_inputs.X_train,self.search_inputs.y_train)
 		self.svm_preds = regress_fit.predict(self.search_inputs.X_test)
-		"""
+		for i in range(0,len(self.svm_preds) - 1):
+			if self.svm_preds[i] < 1:
+				self.svm_preds[i] = 1.00
+			elif self.svm_preds[i] > 3:
+				self.svm_preds[i] = 3.00
+
 
 	def logit(self):
 		# experiment: create non-continuous "groups"
 		#self.y_train = (self.search_inputs.y_train.round() * 2.0 ) / 2.0
+		"""
 		poly = PolynomialFeatures(3)
 		X_train = poly.fit_transform(self.search_inputs.X_train)
 		X_test = poly.fit_transform(self.search_inputs.X_test)
 
 		logit = LinearRegression()
 		#logit = LogisticRegression()
+		"""		
+		logit = LinearDiscriminantAnalysis(solver="lsqr")
 		logit.fit(X_train,self.search_inputs.y_train)
+
+
 		self.logit_preds = logit.predict(X_test)
+
+	def ann(self):
+		#print self.company.X_train.shape[1]
+		model = Sequential()
+		model.add(Dense(input_dim=self.search_inputs.X_train.shape[1], output_dim=50, init="glorot_uniform"))
+		model.add(Activation('tanh'))
+		model.add(Dropout(0.1))
+		model.add(Dense(input_dim=50, output_dim=10, init="uniform"))
+		model.add(Activation('tanh'))
+		model.add(Dropout(0.5))
+		model.add(Dense(input_dim=10, output_dim=1, init="glorot_uniform"))
+		model.add(Activation("linear"))
+
+		sgd = SGD(lr=0.3, decay=1e-6, momentum=0.9, nesterov=True)
+		model.compile(loss='mean_squared_error', optimizer='sgd')
+		early_stopping = EarlyStopping(monitor='val_loss', patience=70)
+		#epoch_score = model.evaluate(X_score, y_score, batch_size = 16) # this doesn't work
+		# first model
+		print "fitting first model"
+		model.fit(self.search_inputs.X_train, self.search_inputs.y_train, nb_epoch=500, validation_split=.1, batch_size=16, verbose = 1, show_accuracy = True, shuffle = False, callbacks=[early_stopping])
+		#score = model.evaluate(self.company.X_cv, self.company.y_cv, show_accuracy=True, batch_size=16)
+		self.ann_preds = model.predict(self.search_inputs.X_test)
+		#print self.ann_preds
+		#print score
+		# visualize
+		#plot(model, to_file= self.company.fin_file_name + '.png')
+
+		return
 
 	def relevance_vote(self):
 		pass 
 	
 	def write_file(self):
 		# for a singleton model, we just make it a dataframe and write it
-		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
+		self.search_inputs.fin_df['relevance'] = np.array(self.ann_preds) # easy swap in / out 
 		print self.search_inputs.fin_df.shape
 		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name, float_format='%.2f', index=False)
 
