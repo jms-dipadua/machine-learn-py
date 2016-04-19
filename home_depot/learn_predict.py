@@ -11,6 +11,7 @@ import math
 from sklearn import svm
 from sklearn.svm import SVR
 from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
@@ -19,7 +20,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split, StratifiedKFold, KFold, StratifiedShuffleSplit, ShuffleSplit
 from sklearn.learning_curve import learning_curve
 from sklearn.grid_search import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout, Flatten
@@ -57,7 +58,8 @@ class SearchInput:
 		X_train_comp.append(X_train_g3_s)
 		X_train_comp.append(X_train_g4_s)
 		self.X_train = X_train_comp.drop(['id', 'product_uid', 'relevance'], axis=1)
-		self.y_train = X_train_comp['relevance']
+		self.y_train = X_train_comp['relevance'].values
+		self.y_train = self.y_train
 		# get the testing data 
 		X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
 		self.X_test = X_test_raw.drop(['id', 'product_uid'], axis=1)
@@ -79,14 +81,14 @@ class SearchInput:
 class LearnedPrediction():
 	def __init__(self):
 		self.search_inputs = SearchInput()
-		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number:  ") + ".csv"
+		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number:  ")
 		self.pre_process_data()
-		self.svm()
+		#self.svm()
 		self.logit()
 		self.random_forest()
 		self.ann()
-		self.ensemble()
-		self.write_file()
+		#self.ensemble()
+		#self.write_file()
 
 	def pre_process_data(self):
 		scaler = StandardScaler()
@@ -110,7 +112,7 @@ class LearnedPrediction():
 
 		self.svm_preds = grid.predict(self.search_inputs.X_test)
 		"""
-		
+
 		regression = SVR(kernel='rbf', C=1e3, gamma=0.1, verbose=True)
 		regress_fit = regression.fit(self.search_inputs.X_train,self.search_inputs.y_train)
 		self.svm_preds = regress_fit.predict(self.search_inputs.X_test)
@@ -121,32 +123,32 @@ class LearnedPrediction():
 			elif self.svm_preds[i] > 3:
 				self.svm_preds[i] = 3.00
 		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
-		final_file_svm = self.search_inputs.fin_df.to_csv('svn'+self.fin_file_name, float_format='%.5f', index=False)
+		final_file_svm = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_svm.csv', float_format='%.5f', index=False)
 		
 
 	def logit(self):
+		"""	
 		# experiment: create non-continuous "groups"
 		#self.y_train = (self.search_inputs.y_train.round() * 2.0 ) / 2.0
+		#poly = PolynomialFeatures(3)
+		#X_train = poly.fit_transform(self.search_inputs.X_train)
+		#X_test = poly.fit_transform(self.search_inputs.X_test)
 		"""
-		poly = PolynomialFeatures(3)
-		X_train = poly.fit_transform(self.search_inputs.X_train)
-		X_test = poly.fit_transform(self.search_inputs.X_test)
-
 		logit = LinearRegression()
 		#logit = LogisticRegression()
-		"""		
-		logit = LinearDiscriminantAnalysis(solver="lsqr")
-		logit.fit(X_train,self.search_inputs.y_train)
-		self.logit_preds = logit.predict(X_test)
+		#logit = LinearDiscriminantAnalysis(solver="lsqr")
+		
+		logit.fit(self.search_inputs.X_train,self.search_inputs.y_train)
+		self.logit_preds = logit.predict(self.search_inputs.X_test)
 		self.search_inputs.fin_df['relevance'] = np.array(self.logit_preds) # easy swap in / out 
-		final_file_logit = self.search_inputs.fin_df.to_csv('logit'+self.fin_file_name, float_format='%.f5', index=False)
+		final_file_logit = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_logit.csv', float_format='%.f5', index=False)
 
 	def random_forest(self):
-		rf = RandomForestClassifier(n_estimators=150, n_jobs=-1, criterion="entropy", random_state=1)
-		rf.fit(self.search_inputs.X_train, self.search_inputs.y)
+		rf = RandomForestRegressor(n_estimators = 500, n_jobs = -1, random_state = 2016, verbose = 1)
+		rf.fit(self.search_inputs.X_train, self.search_inputs.y_train)
 		self.rf_preds = rf.predict(self.search_inputs.X_test)
 		self.search_inputs.fin_df['relevance'] = np.array(self.rf_preds) # easy swap in / out 
-		final_file_logit = self.search_inputs.fin_df.to_csv('rf'+self.fin_file_name, float_format='%.f5', index=False)
+		final_file_logit = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_rf.csv', float_format='%.f5', index=False)
 
 	def ann(self):
 		#print self.company.X_train.shape[1]
@@ -177,7 +179,7 @@ class LearnedPrediction():
 				self.ann_preds[i] = 3.00
 
 		self.search_inputs.fin_df['relevance'] = np.array(self.ann_preds) # easy swap in / out 
-		final_file_ann = self.search_inputs.fin_df.to_csv('ann'+self.fin_file_name, float_format='%.5f', index=False)
+		final_file_ann = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_ann.csv', float_format='%.5f', index=False)
 
 	def ensemble(self):
 		self.preds_final = (self.logit_preds + self.svm_preds + self.ann_preds + self.rf_preds) / 4
@@ -187,7 +189,7 @@ class LearnedPrediction():
 		# for a singleton model, we just make it a dataframe and write it
 		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
 		print self.search_inputs.fin_df.shape
-		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name, float_format='%.2f', index=False)
+		final_file = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_ens.csv', float_format='%.2f', index=False)
 
 if __name__ == "__main__":
 	predictions = LearnedPrediction() 

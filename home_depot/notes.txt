@@ -176,6 +176,7 @@ EX: 2b-4.csv
 	- SO, putting in ceiling and floors. just need to get a benchmark for performance
 EX: 2b-5.csv
 	- svr with ceilings and floors
+	- THIS NEVER FINISHED!!!! 
 
 
 
@@ -188,7 +189,7 @@ output of bayes4 completed but svm for v2 still running in gridsearch
 * bayes4 shows there are still some words that are problematic: lawnmower -> lawn mower, etc
 * v3 will be setup to run logit, svm and ann w/ an ensemble
 	- file will save one for each model and a final ensemble
-
+** JUST COULD NOT get the svm to finish so i killed it AGAIN (and the v2)
 
 
 
