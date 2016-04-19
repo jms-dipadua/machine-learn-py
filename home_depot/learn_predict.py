@@ -81,9 +81,9 @@ class LearnedPrediction():
 		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number:  ") + ".csv"
 		self.pre_process_data()
 		self.svm()
-		#self.logit()
-		#self.ann()
-		#self.ensemble()
+		self.logit()
+		self.ann()
+		self.ensemble()
 		self.write_file()
 
 	def pre_process_data(self):
@@ -92,9 +92,9 @@ class LearnedPrediction():
 		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
-		C_range = np.logspace(-2, 10, 4)
+		C_range = np.logspace(-2, 10, 2)
 		print C_range
-		gamma_range = np.logspace(-9, 3, 4)
+		gamma_range = np.logspace(-9, 3, 2)
 		print gamma_range
 		param_grid = dict(gamma=gamma_range, C=C_range)
 		cv = ShuffleSplit(len(self.search_inputs.y_train), n_iter=5, test_size=0.2, random_state=42)
@@ -117,6 +117,8 @@ class LearnedPrediction():
 				self.svm_preds[i] = 1.00
 			elif self.svm_preds[i] > 3:
 				self.svm_preds[i] = 3.00
+		self.search_inputs.fin_df['relevance'] = np.array(self.svm_preds) # easy swap in / out 
+		final_file_svm = self.search_inputs.fin_df.to_csv('svn'+self.fin_file_name, float_format='%.5f', index=False)
 		
 
 	def logit(self):
@@ -132,9 +134,9 @@ class LearnedPrediction():
 		"""		
 		logit = LinearDiscriminantAnalysis(solver="lsqr")
 		logit.fit(X_train,self.search_inputs.y_train)
-
-
 		self.logit_preds = logit.predict(X_test)
+		self.search_inputs.fin_df['relevance'] = np.array(self.logit_preds) # easy swap in / out 
+		final_file_logit = self.search_inputs.fin_df.to_csv('logit'+self.fin_file_name, float_format='%.45', index=False)
 
 	def ann(self):
 		#print self.company.X_train.shape[1]
@@ -164,7 +166,8 @@ class LearnedPrediction():
 			elif self.ann_preds[i] > 3:
 				self.ann_preds[i] = 3.00
 
-		return
+		self.search_inputs.fin_df['relevance'] = np.array(self.ann_preds) # easy swap in / out 
+		final_file_ann = self.search_inputs.fin_df.to_csv('ann'+self.fin_file_name, float_format='%.5f', index=False)
 
 	def ensemble(self):
 		self.preds_final = (self.logit_preds + self.svm_preds + self.ann_preds) / 3
