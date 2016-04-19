@@ -109,33 +109,33 @@ class Transformer:
 		if not self.dataframe['product_title'].empty:
 			prod_title = list(self.dataframe.apply(lambda x:'%s' % (x['product_title']), axis=1 ))
 			self.prod_title_tfidf = self.tfv.fit_transform(prod_title)
-			self.dataframe['prod_title_tfidf'] =  self.prod_title_tfidf
+			#self.dataframe['prod_title_tfidf'] =  self.prod_title_tfidf
 			
 		if not self.dataframe['search_term'].empty:
 			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_term']), axis=1 ))
 			self.prod_query_tfidf =  self.tfv.transform(prod_query)
-			self.dataframe['prod_query_tfidf'] = self.prod_query_tfidf 
+			#self.dataframe['prod_query_tfidf'] = self.prod_query_tfidf 
 
 		if not self.dataframe['search_terms_fixed'].empty:
 			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_terms_fixed']), axis=1 ))
 			self.prod_query_fixes_tfidf =  self.tfv.transform(prod_query)
-			self.dataframe['prod_query_fixes_tfidf'] =  self.prod_query_fixes_tfidf 
+			#self.dataframe['prod_query_fixes_tfidf'] =  self.prod_query_fixes_tfidf 
 
 		# now do this all again for product description
 		if not self.dataframe['product_description'].empty:
 			prod_des = list(self.dataframe.apply(lambda x:'%s' % (x['product_description']), axis=1 ))
 			self.prod_des_tfidf = self.tfv.fit_transform(prod_des)
-			self.dataframe['prod_des_tfidf'] = self.prod_des_tfidf
+			#self.dataframe['prod_des_tfidf'] = self.prod_des_tfidf
 
 		if not self.dataframe['search_term'].empty:
 			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_term']), axis=1 ))
 			self.des_query_tfidf =  self.tfv.transform(prod_query)
-			self.dataframe['des_query_tfidf'] = self.des_query_tfidf
+			#self.dataframe['des_query_tfidf'] = self.des_query_tfidf
 
 		if not self.dataframe['search_terms_fixed'].empty:
 			prod_query = list(self.dataframe.apply(lambda x:'%s' % (x['search_terms_fixed']), axis=1 ))
 			self.des_query_fixes_tfidf =  self.tfv.transform(prod_query)
-			self.dataframe['des_query_fixes_tfidf'] = self.des_query_fixes_tfidf 
+			#self.dataframe['des_query_fixes_tfidf'] = self.des_query_fixes_tfidf 
 
 	def calc_cosine_sim(self):
 		# product titles to search term
@@ -187,8 +187,9 @@ class Transformer:
 			kw_matches_title[i] = kws_matched_title
 			kw_matches_des[i] = kws_matched_des
 		# after all is said and done, set the dataframe to the ratio
-		self.dataframe['kw_matches'] = kw_matches
-
+		self.dataframe['kw_matches_overall'] = kw_matches_overall
+		self.dataframe['kw_matches_title'] = kw_matches_title
+		self.dataframe['kw_matches_des'] = kw_matches_des
 	
 	def data_drop(self):
 		self.dataframe = self.dataframe.drop(['product_title', 'search_term', 'search_terms_fixed', 'product_description'], axis=1)
