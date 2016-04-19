@@ -94,6 +94,7 @@ class LearnedPrediction():
 		self.search_inputs.X_test = scaler.fit_transform(self.search_inputs.X_test)
 
 	def svm(self):
+		"""
 		C_range = np.logspace(-2, 10, 2)
 		print C_range
 		gamma_range = np.logspace(-9, 3, 2)
@@ -108,12 +109,12 @@ class LearnedPrediction():
 			% (grid.best_params_, grid.best_score_))
 
 		self.svm_preds = grid.predict(self.search_inputs.X_test)
-		
 		"""
+		
 		regression = SVR(kernel='rbf', C=1e3, gamma=0.1, verbose=True)
 		regress_fit = regression.fit(self.search_inputs.X_train,self.search_inputs.y_train)
 		self.svm_preds = regress_fit.predict(self.search_inputs.X_test)
-		"""
+		
 		for i in range(0,len(self.svm_preds) - 1):
 			if self.svm_preds[i] < 1:
 				self.svm_preds[i] = 1.00
