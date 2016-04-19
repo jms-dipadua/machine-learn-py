@@ -61,7 +61,7 @@ class SearchInput:
 		# get the testing data 
 		X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
 		self.X_test = X_test_raw.drop(['id', 'product_uid'], axis=1)
-		self.fin_df = X_test_raw.drop(['product_uid', 'prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf','des_query_raw_cosine_tfidf','des_query_fixes_cosine_tfidf','kw_matches'], axis=1)
+		self.fin_df = X_test_raw.drop(['product_uid', 'prod_query_raw_cosine_tfidf', 'prod_query_fixes_cosine_tfidf','des_query_raw_cosine_tfidf','des_query_fixes_cosine_tfidf','kw_matches_overall', 'kw_matches_title', 'kw_matches_des'], axis=1)
 	
 	def remap_rel(self):
 		relevance_map_to_classes = {

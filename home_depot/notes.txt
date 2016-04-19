@@ -205,3 +205,4 @@ id,relevance
 4,2
 5,3
 
+product_uid	relevance	prod_query_raw_cosine_tfidf	prod_query_fixes_cosine_tfidf	des_query_raw_cosine_tfidf	des_query_fixes_cosine_tfidf	kw_matches_overall	kw_matches_title	kw_matches_des
