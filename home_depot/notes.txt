@@ -177,6 +177,21 @@ EX: 2b-4.csv
 EX: 2b-5.csv
 	- svr with ceilings and floors
 
+
+
+---  ***   V3 *** ---
+output of bayes4 completed but svm for v2 still running in gridsearch
+	problematic but moving forward w/ experiment
+* v3 uses bayes4. initial glance at output shows that cosine distances (in some places) are greatly improved. 
+* v3 will also see a separation of kw_matches to: overall, title, description 
+	* but still only for search_term_fixes (i.e. not raw)
+* bayes4 shows there are still some words that are problematic: lawnmower -> lawn mower, etc
+* v3 will be setup to run logit, svm and ann w/ an ensemble
+	- file will save one for each model and a final ensemble
+
+
+
+
 Evaluation
 
 Submissions are evaluated on the root mean squared error (RMSE).

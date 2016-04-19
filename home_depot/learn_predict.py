@@ -19,6 +19,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split, StratifiedKFold, KFold, StratifiedShuffleSplit, ShuffleSplit
 from sklearn.learning_curve import learning_curve
 from sklearn.grid_search import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
 
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout, Flatten
@@ -82,6 +83,7 @@ class LearnedPrediction():
 		self.pre_process_data()
 		self.svm()
 		self.logit()
+		self.random_forest()
 		self.ann()
 		self.ensemble()
 		self.write_file()
@@ -136,7 +138,14 @@ class LearnedPrediction():
 		logit.fit(X_train,self.search_inputs.y_train)
 		self.logit_preds = logit.predict(X_test)
 		self.search_inputs.fin_df['relevance'] = np.array(self.logit_preds) # easy swap in / out 
-		final_file_logit = self.search_inputs.fin_df.to_csv('logit'+self.fin_file_name, float_format='%.45', index=False)
+		final_file_logit = self.search_inputs.fin_df.to_csv('logit'+self.fin_file_name, float_format='%.f5', index=False)
+
+	def random_forest(self):
+		rf = RandomForestClassifier(n_estimators=150, n_jobs=-1, criterion="entropy", random_state=1)
+		rf.fit(self.search_inputs.X_train, self.search_inputs.y)
+		self.rf_preds = rf.predict(self.search_inputs.X_test)
+		self.search_inputs.fin_df['relevance'] = np.array(self.rf_preds) # easy swap in / out 
+		final_file_logit = self.search_inputs.fin_df.to_csv('rf'+self.fin_file_name, float_format='%.f5', index=False)
 
 	def ann(self):
 		#print self.company.X_train.shape[1]
@@ -170,7 +179,7 @@ class LearnedPrediction():
 		final_file_ann = self.search_inputs.fin_df.to_csv('ann'+self.fin_file_name, float_format='%.5f', index=False)
 
 	def ensemble(self):
-		self.preds_final = (self.logit_preds + self.svm_preds + self.ann_preds) / 3
+		self.preds_final = (self.logit_preds + self.svm_preds + self.ann_preds + self.rf_preds) / 4
 		pass 
 	
 	def write_file(self):
