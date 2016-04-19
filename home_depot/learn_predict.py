@@ -83,12 +83,12 @@ class LearnedPrediction():
 		self.search_inputs = SearchInput()
 		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number:  ")
 		self.pre_process_data()
-		#self.svm()
+		self.svm()
 		self.logit()
 		self.random_forest()
 		self.ann()
-		#self.ensemble()
-		#self.write_file()
+		self.ensemble()
+		self.write_file()
 
 	def pre_process_data(self):
 		scaler = StandardScaler()
@@ -134,21 +134,21 @@ class LearnedPrediction():
 		#X_train = poly.fit_transform(self.search_inputs.X_train)
 		#X_test = poly.fit_transform(self.search_inputs.X_test)
 		"""
-		logit = LinearRegression()
-		#logit = LogisticRegression()
+		#logit = LinearRegression()
+		logit = LogisticRegression()
 		#logit = LinearDiscriminantAnalysis(solver="lsqr")
 		
 		logit.fit(self.search_inputs.X_train,self.search_inputs.y_train)
 		self.logit_preds = logit.predict(self.search_inputs.X_test)
 		self.search_inputs.fin_df['relevance'] = np.array(self.logit_preds) # easy swap in / out 
-		final_file_logit = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_logit.csv', float_format='%.f5', index=False)
+		final_file_logit = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_logit.csv', float_format='%.5f', index=False)
 
 	def random_forest(self):
 		rf = RandomForestRegressor(n_estimators = 500, n_jobs = -1, random_state = 2016, verbose = 1)
 		rf.fit(self.search_inputs.X_train, self.search_inputs.y_train)
 		self.rf_preds = rf.predict(self.search_inputs.X_test)
 		self.search_inputs.fin_df['relevance'] = np.array(self.rf_preds) # easy swap in / out 
-		final_file_logit = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_rf.csv', float_format='%.f5', index=False)
+		final_file_logit = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_rf.csv', float_format='%.5f', index=False)
 
 	def ann(self):
 		#print self.company.X_train.shape[1]
