@@ -191,7 +191,13 @@ output of bayes4 completed but svm for v2 still running in gridsearch
 	- file will save one for each model and a final ensemble
 ** JUST COULD NOT get the svm to finish so i killed it AGAIN (and the v2)
 
+- okay so with a bit of tweaking, i think i get why i cannot use the logit methods for this project: the classes are floats BUT they need to be treated as classes. so my predictions, if i CAST the y_train as a str rather than as a flaot, it will make predictions but they'll just be as those str, and then when the competition measures based on RSE, it gives me a really bad score. the float outputs SEEM to do better. or maybe i'm just off my rocker. i dunno. my last few submissions have been REALLY bad, so wtf do i know!? 
+ -- submissions are all landing in the .78  :(
 
+MAYBE, i just need to abandon MOST of my feature engineering i did and start over.
+i'll look at the other submission scripts and see what i'm doing wrong. 
+i SUSPECT it has something to do with a) the cosine distance stuff and b) use of TFIDF
+	- CAN create a pipeline that feeds directly from tfidf into the svd into random forest. that seems to be the common theme. :(
 
 Evaluation
 
@@ -207,3 +213,6 @@ id,relevance
 5,3
 
 product_uid	relevance	prod_query_raw_cosine_tfidf	prod_query_fixes_cosine_tfidf	des_query_raw_cosine_tfidf	des_query_fixes_cosine_tfidf	kw_matches_overall	kw_matches_title	kw_matches_des
+
+
+

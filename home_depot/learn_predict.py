@@ -12,6 +12,7 @@ from sklearn import svm
 from sklearn.svm import SVR
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.lda import LDA
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
@@ -58,8 +59,7 @@ class SearchInput:
 		X_train_comp.append(X_train_g3_s)
 		X_train_comp.append(X_train_g4_s)
 		self.X_train = X_train_comp.drop(['id', 'product_uid', 'relevance'], axis=1)
-		self.y_train = X_train_comp['relevance'].values
-		self.y_train = self.y_train
+		self.y_train = X_train_comp['relevance']
 		# get the testing data 
 		X_test_raw = pd.read_csv(self.file_dir + self.X_test_file)
 		self.X_test = X_test_raw.drop(['id', 'product_uid'], axis=1)
@@ -83,12 +83,12 @@ class LearnedPrediction():
 		self.search_inputs = SearchInput()
 		self.fin_file_name = "data/predictions_v" + raw_input("experiment version number:  ")
 		self.pre_process_data()
-		self.svm()
 		self.logit()
-		self.random_forest()
-		self.ann()
-		self.ensemble()
-		self.write_file()
+		#self.random_forest()
+		#self.ann()
+		#self.svm()
+		#self.ensemble()
+		#self.write_file()
 
 	def pre_process_data(self):
 		scaler = StandardScaler()
@@ -136,7 +136,8 @@ class LearnedPrediction():
 		"""
 		#logit = LinearRegression()
 		logit = LogisticRegression()
-		#logit = LinearDiscriminantAnalysis(solver="lsqr")
+		#logit = LDA()
+		y_train = np.asarray(self.search_inputs.y_train, dtype=str)
 		
 		logit.fit(self.search_inputs.X_train,self.search_inputs.y_train)
 		self.logit_preds = logit.predict(self.search_inputs.X_test)
@@ -182,7 +183,7 @@ class LearnedPrediction():
 		final_file_ann = self.search_inputs.fin_df.to_csv(self.fin_file_name+'_ann.csv', float_format='%.5f', index=False)
 
 	def ensemble(self):
-		self.preds_final = (self.logit_preds + self.svm_preds + self.ann_preds + self.rf_preds) / 4
+		self.preds_final = (self.svm_preds + self.ann_preds + self.rf_preds) 
 		pass 
 	
 	def write_file(self):
