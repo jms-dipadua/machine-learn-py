@@ -1,0 +1,93 @@
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/homework-1-working-mem-09-08-12.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/hmwk2-working-mem-0917.12.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/homework-1-working-mem-09-08-12.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/first-example-sript-with-notes.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/EXAMPLE-Etta-SQUARED.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/assignment-4-week-5.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/assignment-5-week-6.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/impact-example1.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/mixed-factorial-1.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/impact-example1.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/first-example-sript-with-notes.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/homework-1-working-mem-09-08-12.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/hmwk2-working-mem-0917.12.R', chdir = TRUE)
+source('~/Desktop/everything/JAMES STUFF/R-working-directory/homework-1-working-mem-09-08-12.R', chdir = TRUE)
+library(dplyr)#
+library(readr)#
+library(ggmap)#
+data_dir <- "../input"#
+train <- read_csv(file.path(data_dir, "train.csv"))#
+mapdata <- readRDS(file.path(data_dir, "mapdata_copyright_openstreetmap_contributors.rds"))#
+train$Date <- as.Date(train$Date)#
+#
+# Which date has the most measurements?#
+counts_by_date <- train %>% group_by(Date) %>% summarise(NumMeasurements = n()) %>% arrange(desc(NumMeasurements)) %>% head#
+counts_by_date#
+#
+date_to_show <- counts_by_date$Date[1]#
+#
+single_date_grouped_by_location <- train %>% #
+  filter(Date == "2007-08-01") %>%#
+  group_by(Longitude, Latitude) %>%#
+  summarize(NumMosquitos = sum(NumMosquitos))#
+#
+qplot(single_date_grouped_by_location$NumMosquitos) + #
+  scale_x_log10() + #
+  xlab("Number of Mosquitos") +#
+  ylab("Number of test sites w/ this many mosquitos") +#
+  ggtitle("Distribution of Mosquito Counts (Log Scale")#
+ggmap(mapdata) + #
+  geom_point(aes(x=Longitude, y=Latitude, color=NumMosquitos), size=3, data=single_date_grouped_by_location) + #
+  scale_color_continuous(trans="log") +#
+  ggtitle(sprintf("Spatial Arrangement of Mosquito Counts on %s", date_to_show))
+For each location, the dots show the date of each record we have in the data.#
+# For the training data, this shows us when/where measurements were actually taken.#
+# But for the test data, we see a very regular set of locations/dates.  #
+# (This is because the test data has been filled in with many rows that don't always correspond to real measurements. #
+# We need to make predictions for all of these rows, but only the ones corresponding to real measurements will be #
+# used in scoring.)#
+#
+library(dplyr)#
+library(readr)#
+library(ggplot2)#
+#
+data_dir <- "../input"#
+train <- read_csv(file.path(data_dir, "train.csv"))#
+test <- read_csv(file.path(data_dir, "test.csv"))#
+train$Usage <- "Train"#
+test$Usage <- "Test"#
+#
+train_and_test <- bind_rows(train, test)#
+#
+train_and_test$Date <- as.Date(train_and_test$Date)#
+locations_and_dates <- train_and_test %>% select(AddressNumberAndStreet, Longitude, Latitude, Date, Usage) %>% unique#
+#
+theme_set(theme_gray(base_size = 20))#
+png(height=1920, width=1920)#
+ggplot(locations_and_dates) + #
+  geom_point(aes(x=Date, y=AddressNumberAndStreet, color=Usage), size=1) +#
+  scale_x_date(breaks = "1 year")#
+dev.off()
+install.packages("choroplethrMaps")
+Yes
+yes
+y
+install.packages("choroplethrMaps")
+source("data_vis_small.r")
+setwd("/Users/jadalm/Sites/python/mung/R_code_examples")
+source("data_vis_small.r")
+install.packages(c("sqldf", "plyr", "ggplot2", "corrplot", "maps", "Hmisc"))
+source("data_vis_small.r")
+source("data_vis_small.r")
+source("data_vis_small.r")
+install.packages("mapdata")
+install.packages("mapdata")
+source("data_vis_small.r")
+source("data_vis_small.r")
+source("data_vis_small.r")
+source("data_vis_small.r")
+source("data_vis_small.r")
+source("data_vis_small.r")
+install.packages("mapproj")
+source("data_vis_small.r")
+source("data_vis_small.r")

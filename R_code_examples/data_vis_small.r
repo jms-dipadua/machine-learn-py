@@ -2,7 +2,7 @@
 # ggplot2, sqldf, plyr, gcookbook
 # and loaded
 rm(list=ls()) # restart workstation
-
+# set working directory
 library(sqldf)
 library(plyr)
 library(ggplot2)
@@ -33,13 +33,13 @@ d_samp1$state <- basic_d$GEO.display.label
 
 # get your reading and math scores
 
-reading12thraw <- read.csv("/data/reading-scores-12th.csv")
+reading12thraw <- read.csv("data/reading-scores-12th.csv")
 
-reading4thraw <- read.csv("/data/reading-scores-4th.csv")
+reading4thraw <- read.csv("data/reading-scores-4th.csv")
 
-math4thraw <- read.csv("/data/math-scores-4th.csv")
+math4thraw <- read.csv("data/math-scores-4th.csv")
 
-math12thraw <- read.csv("/data/math-scores-12th.csv")
+math12thraw <- read.csv("data/math-scores-12th.csv")
 
 # drop the dumb error intervals. error intervals are for losers  ;-)
 reading12th <- reading12thraw[,1:3]
@@ -83,10 +83,10 @@ read_math_ss2 <- merge (reading4th, math4th, by=c("state", "Year"))
 # range of test scores by year (as factor)
 
 test_by_year <- qplot(factor(Year), reading4th, data=read_math_ss2, geom="boxplot", fill=as.factor(read_math_ss2$Year)) + labs(title="Reading Score Distributions: \n All Schools, 2007 - 2015", fill="Test Year", x="", y="Reading Scores, 4th Grade")
-ggsave(file="/images/test_by_year_read.png", plot = last_plot())
+ggsave(file="/Users/jadalm/Desktop/everything/JAMES_STUFF/Classes/data-vis/assignment_2/images/test_by_year_read.png", plot = last_plot())
 
 test_by_year <- qplot(factor(Year), math4th, data=read_math_ss2, geom="boxplot", fill=as.factor(read_math_ss2$Year)) + labs(title="Math Score Distributions: \n All Schools, 2007 - 2015", fill="Test Year", x="", y="Math Scores, 4th Grade")
-ggsave(file="/images/test_by_year_math.png", plot = last_plot())
+ggsave(file="/Users/jadalm/Desktop/everything/JAMES_STUFF/Classes/data-vis/assignment_2/images/test_by_year_math.png", plot = last_plot())
 
 
 # SO, let's make some subdata-set that we can then plot better
@@ -159,10 +159,16 @@ bot_both$math4th <- as.numeric(as.character(bot_both$math4th))
 
 bot_both <- na.omit(bot_both)
 
+r_m_13 <- merge(reading4th_13, math4th_13, by=c("state", "Year"))
+# drop the year
+r_m_v2 <- r_m_13[,c(1,3, 4)]
+
+# let's start merging some stuff up! 
+d_samp2 <- merge(d_samp1, r_m_v2, by="state")
 
 # merge in the income data 
 
-income_raw <- read.csv("/data/income-data.csv")
+income_raw <- read.csv("/Users/jadalm/Desktop/everything/JAMES_STUFF/Classes/data-vis/assignment_2/data/income-data.csv")
 income_v2 <- t(income_raw)
 income_v3 <- income_v2
 # clean up the col names
@@ -201,7 +207,7 @@ pal_r <- colorRampPalette(c("#663300", "#ff8000", "#ffe6cc"))(5)
 map_read <- ggplot(d_samp4, aes(map_id = state, fill=quant_r)) + geom_map(map=states_map, color="white") + scale_fill_manual(values=pal_r) + expand_limits( x= states_map$long, y=states_map$lat)  + coord_map("polyconic") + labs(fill="Reading Scores \nPrecentile", title="Reading Scores: 2013") + theme(axis.title= element_blank(), axis.text=element_blank())
 
 #map_read <- ggplot(d_samp4, aes(x=long, y=lat, group=group, fill=reading4th)) + geom_polygon(color="black") + coord_map("polyconic")
-ggsave(file="map_read.png", plot = last_plot())
+ggsave(file="images/map_read.png", plot = last_plot())
 
 quant_m <- quantile(d_samp4$math4th, c(0, .2, .4, .6, .8, 1.0))
 d_samp4$quant_m <- cut(d_samp4$math4th, quant_m, labels=c("0-20%", "20-40%", "40-60%", "60-80%", "80-100%"))
@@ -209,8 +215,7 @@ d_samp4$quant_m <- cut(d_samp4$math4th, quant_m, labels=c("0-20%", "20-40%", "40
 
 pal_m <- colorRampPalette(c("#141452", "#7070db", "#ebebfa"))(5)
 
-map_math <- ggplot(d_samp4, aes(map_id = state, fill=quant_m)) + geom_map(map=states_map, color="gray") + scale_fill_manual(values=pal_m) + expand_limits( x= states_map$long, y=states_map$lat)  + coord_map("polyconic") + labs(fill="Reading Scores \nPrecentile", title="Math Scores: 2013") + theme(axis.title= element_blank(), axis.text=element_blank())
-
+map_math <- ggplot(d_samp4, aes(map_id = state, fill=quant_m)) + geom_map(map=states_map, color="white") + scale_fill_manual(values=pal_m) + expand_limits( x= states_map$long, y=states_map$lat)  + coord_map("polyconic") + labs(fill="Math Scores \nPrecentile", title="Math Scores: 2013") + theme(axis.title= element_blank(), axis.text=element_blank())
 #map_math <- ggplot(d_samp4, aes(x=long, y=lat, group=group, fill=math4th)) + geom_polygon(color="black") + coord_map("polyconic")
-ggsave(file="/images/map_math.png", plot = last_plot())
+ggsave(file="images/map_math.png", plot = last_plot())
 

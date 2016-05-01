@@ -445,7 +445,7 @@ d_samp4$quant_m <- cut(d_samp4$math4th, quant_m, labels=c("0-20%", "20-40%", "40
 
 pal_m <- colorRampPalette(c("#141452", "#7070db", "#ebebfa"))(5)
 
-map_math <- ggplot(d_samp4, aes(map_id = state, fill=quant_m)) + geom_map(map=states_map, color="gray") + scale_fill_manual(values=pal_m) + expand_limits( x= states_map$long, y=states_map$lat)  + coord_map("polyconic") + labs(fill="Reading Scores \nPrecentile", title="Math Scores: 2013") + theme(axis.title= element_blank(), axis.text=element_blank())
+map_math <- ggplot(d_samp4, aes(map_id = state, fill=quant_m)) + geom_map(map=states_map, color="gray") + scale_fill_manual(values=pal_m) + expand_limits( x= states_map$long, y=states_map$lat)  + coord_map("polyconic") + labs(fill="Math Scores \nPrecentile", title="Math Scores: 2013") + theme(axis.title= element_blank(), axis.text=element_blank())
 
 #map_math <- ggplot(d_samp4, aes(x=long, y=lat, group=group, fill=math4th)) + geom_polygon(color="black") + coord_map("polyconic")
 ggsave(file="/Users/jadalm/Desktop/everything/JAMES_STUFF/Classes/data-vis/assignment_2/images/map_math.png", plot = last_plot())
